@@ -1,4 +1,5 @@
 pluginManagement {
+    includeBuild("build-logic")
     repositories {
         google {
             content {
@@ -21,3 +22,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "Refluent"
 include(":app")
+include(":feature:home")
+include(":core:domain")
+include(":core:model")
+include(":core:ui")
