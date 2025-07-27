@@ -4,33 +4,33 @@
 agp = "8.7.3"
 
 # Kotlin
-kotlin = "2.1.10"
+kotlin = "2.2.0"
 kotlin-immutable = "0.3.8"
 kotlin-coroutines = "1.10.1"
 kotlin-serialization = "1.8.0"
 kotlin-datetime = "0.6.2"
-ksp = "2.1.10-1.0.30"
+ksp = "2.2.0-2.0.2"
 
 # AndroidX
 androidx-core = "1.16.0"
 androidx-activity = "1.10.1"
 androidx-hilt = "1.2.0"
-androidx-media3 = "1.6.1"
-androidx-lifecycle = "2.8.7"
+androidx-media3 = "1.7.1"
+androidx-lifecycle = "2.9.2"
 androidx-compose-material3 = "1.3.2"
-androidx-navigation = "2.8.9"
+androidx-navigation = "2.9.2"
 androidx-security = "1.0.0"
-androidx-compose-bom = "2025.04.01"
+androidx-compose-bom = "2025.07.00"
 androidx-startup = "1.2.0"
-androidx-window = "1.3.0"
-androidx-splash = "1.2.0-beta02"
+androidx-window = "1.4.0"
+androidx-splash = "1.2.0-rc01"
 
 # Google
 dagger = "2.55"
 
 # Network
 retrofit = "2.11.0"
-okhttp = "4.12.0"
+okhttp = "5.1.0"
 eithernet = "1.9.0"
 
 # Static analysis
@@ -45,21 +45,21 @@ configVars = "4.0.8"
 # Others
 desugaring = "2.1.5"
 coil = "2.7.0"
-grgit = "5.3.0"
+grgit = "5.3.2"
 javax-inject = "1"
 lottie = "6.6.0"
 sentry-plugin = "4.12.0"
-sentry = "8.7.0"
+sentry = "8.17.0"
 
 # Test
 espressoCore = "3.6.1"
 
 # Dependencies of the included build-logic
-androidTools = "31.9.2"
+androidTools = "31.11.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCoreVersion = "3.6.1"
-appcompat = "1.7.0"
+appcompat = "1.7.1"
 material = "1.12.0"
 
 [libraries]
@@ -116,10 +116,6 @@ detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", 
 
 # Debug
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
-hyperion-core = { module = "com.willowtreeapps.hyperion:hyperion-core", version.ref = "hyperion" }
-hyperion-prefs = { module = "com.willowtreeapps.hyperion:hyperion-shared-preferences", version.ref = "hyperion" }
-configVars = { module = "dk.shape.configvars:configvars", version.ref = "configVars" }
-configVars-hyperion = { module = "dk.shape.configvars:configvars-hyperion-plugin", version.ref = "configVars" }
 sentry = { group = "io.sentry", name = "sentry-android", version.ref = "sentry" }
 sentry-compose = { group = "io.sentry", name = "sentry-compose-android", version.ref = "sentry" }
 

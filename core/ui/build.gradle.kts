@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "io.kayt.core.ui"
+    namespace = "io.kayt.refluent.core.ui"
     buildTypes {
         create("beta")
     }

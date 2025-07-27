@@ -1,0 +1,26 @@
+package io.kayt.refluent.core.ui.theme.colors
+
+import androidx.compose.ui.graphics.Color
+
+val Purple1 = Color(0xFF6038E5)
+val Purple2 = Color(0xFFB7A8FF)
+val Purple3 = Color(0xFFD2CCFF)
+val Purple4 = Color(0xFF3A2999)
+val Black1 = Color(0xFF101720)
+val Black2 = Color(0xFF1D154D)
+val White = Color(0xFFFFFFFF)
+val Grey1 = Color(0xFFE6E6E2)
+val Grey2 = Color(0xFFE8E8DF)
+val Grey3 = Color(0xFFD0D0C3)
+val Grey4 = Color(0xFF717B7B)
+val Orange = Color(0xFFE9472E)
+val LightOrange = Color(0xFFFFC6B0)
+val SecPurple = Color(0xFF8F78FF)
+val SecOrange = Color(0xFFF26855)
+val SecPink = Color(0xFFFF80AE)
+val SecYellow = Color(0xFFFFDE80)
+val SecGreen = Color(0xFFCCFEC0)
+val SecBlue = Color(0xFF5589D8)
+val Green = Color(0xFF8DDF76)
+val Red = Color(0xFFFF4E5D)
+val Red2 = Color(0xFFDC0000)
