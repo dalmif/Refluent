@@ -1,11 +1,31 @@
 package io.kayt.refluent.core.ui.theme.typography
 
+import android.content.Context
+import android.os.Build
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import io.kayt.refluent.core.ui.R
+import android.graphics.Typeface as AndroidTypeface
+import android.graphics.fonts.Font as AndroidFont
+
+var MixedFont: FontFamily? = null
+fun setMixedFont(context: Context) {
+    MixedFont != null && return
+    val font = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        val font = AndroidFont.Builder(context.resources, R.font.dmsans).build()
+        val family = android.graphics.fonts.FontFamily.Builder(font).build()
+        val fallbackFont = AndroidFont.Builder(context.resources, R.font.vazir).build()
+        val fallbackFamily = android.graphics.fonts.FontFamily.Builder(fallbackFont).build()
+        AndroidTypeface.CustomFallbackBuilder(family)
+            .addCustomFallback(fallbackFamily)
+            .build()
+    } else null
+    font ?: return
+    MixedFont = FontFamily(font)
+}
 
 @OptIn(ExperimentalTextApi::class)
 val DMSans = FontFamily(

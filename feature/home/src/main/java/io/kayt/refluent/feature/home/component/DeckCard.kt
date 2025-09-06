@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -36,7 +37,9 @@ fun DeckCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .clickable(onClick = onClick)
-            .background(Color(0xFFBBE2A8))
+            .background(Brush.horizontalGradient(
+                listOf(Color(0xFFFDDCAA), Color(0xFFECDBDA))
+            ))
             .padding(start = 21.dp, end = 16.dp)
             .padding(top = 38.dp, bottom = 22.dp)
     ) {
