@@ -1,9 +1,6 @@
 package io.kayt.refluent.feature.home
 
-import androidx.compose.animation.core.EaseIn
 import androidx.compose.animation.core.EaseOutExpo
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -22,13 +19,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.lerp
 import androidx.hilt.navigation.compose.hiltViewModel
 import io.kayt.refluent.core.ui.component.LargeTopmostAppBar
 import io.kayt.refluent.core.ui.component.MeshGradient
@@ -41,15 +37,23 @@ import io.kayt.refluent.core.ui.component.topmostAppBarAnimatableProperties
 import io.kayt.refluent.core.ui.theme.AppTheme
 import io.kayt.refluent.feature.home.component.DeckCard
 import io.kayt.refluent.feature.home.component.SearchTextFiled
-import androidx.compose.ui.util.lerp
 
 @Composable
-internal fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
-    HomeScreen(modifier = Modifier)
+internal fun HomeScreen(
+    onDeckClick: (Int) -> Unit,
+    viewModel: HomeViewModel = hiltViewModel()
+) {
+    HomeScreen(
+        onDeckClick = onDeckClick,
+        modifier = Modifier
+    )
 }
 
 @Composable
-private fun HomeScreen(modifier: Modifier = Modifier) {
+private fun HomeScreen(
+    onDeckClick: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
 
     val backgroundMeshAnimation by animateOffsetOnBorder(50_000)
     MeshGradient(
@@ -76,7 +80,9 @@ private fun HomeScreen(modifier: Modifier = Modifier) {
                     animatableProperties = topmostAppBarAnimatableProperties(
                         defaultStart = TopmostAppBarAnimationTimeline.Scrolled,
                     ) {
-                        titleAlpha at TopmostAppBarAnimationTimeline.Collapsed with tween(durationMillis = 210)
+                        titleAlpha at TopmostAppBarAnimationTimeline.Collapsed with tween(
+                            durationMillis = 210
+                        )
                         backgroundAlpha at TopmostAppBarAnimationTimeline.Never
                         dividerAlpha at TopmostAppBarAnimationTimeline.Never
                     },
@@ -100,7 +106,7 @@ private fun HomeScreen(modifier: Modifier = Modifier) {
                 ) { padding, fraction ->
                     Column(
                         modifier = Modifier
-                            .alpha(lerp(1f,0f, EaseOutExpo.transform(fraction)))
+                            .alpha(lerp(1f, 0f, EaseOutExpo.transform(fraction)))
                             .padding(padding.windowPadding)
                             .padding(horizontal = 16.dp)
                             .padding(top = 26.dp)
@@ -138,7 +144,7 @@ private fun HomeScreen(modifier: Modifier = Modifier) {
                             item {
                                 DeckCard(
                                     modifier = Modifier.padding(bottom = 10.dp),
-                                    onClick = {},
+                                    onClick = { onDeckClick(0) },
                                     onStudyClick = {}
                                 )
                             }

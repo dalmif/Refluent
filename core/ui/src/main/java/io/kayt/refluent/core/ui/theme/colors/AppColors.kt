@@ -20,6 +20,7 @@ data class AppColors(
     val backgroundNegative: Color,
     val backgroundPurple: Color,
     val backgroundDark: Color,
+    val onBackgroundDark: Color,
     val ctaPrimary: Color,
     val ctaSecondary: Color,
     val ctaIconPrimary: Color,

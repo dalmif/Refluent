@@ -59,7 +59,7 @@ fun MeshGradient(
     )
 }
 
-data class GradientPoint internal constructor(
+data class GradientPoint(
     val x: Float,
     val y: Float,
     val color: Color,
@@ -67,7 +67,7 @@ data class GradientPoint internal constructor(
     val scaleY: Float
 )
 
-class PointCollectorDsl internal constructor() {
+class PointCollectorDsl() {
     internal val points = mutableListOf<GradientPoint>()
     fun point(x: Float, y: Float, color: Color, scale: Float = 1f) {
         points.add(GradientPoint(x, y, color, scale, scale))
@@ -82,7 +82,7 @@ class PointCollectorDsl internal constructor() {
     }
 }
 
-data class MeshGradientContext internal constructor(
+data class MeshGradientContext(
     val width: Int,
     val height: Int,
     val points: () -> List<GradientPoint>

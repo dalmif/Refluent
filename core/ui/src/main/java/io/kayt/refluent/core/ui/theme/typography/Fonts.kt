@@ -8,7 +8,7 @@ import androidx.compose.ui.text.font.FontWeight
 import io.kayt.refluent.core.ui.R
 
 @OptIn(ExperimentalTextApi::class)
-internal val DarkerGrotesque = FontFamily(
+val DMSans = FontFamily(
     Font(
         resId = R.font.dmsans,
         weight = FontWeight.W100,
@@ -71,5 +71,5 @@ internal val DarkerGrotesque = FontFamily(
         variationSettings = FontVariation.Settings(
             FontVariation.weight(900)
         )
-    ),
+    )
 )
