@@ -54,18 +54,25 @@ import io.kayt.refluent.core.ui.component.button.PrimaryButton
 import io.kayt.refluent.core.ui.component.button.SecondaryButton
 import io.kayt.refluent.core.ui.component.rememberTopmostAppBarState
 import io.kayt.refluent.core.ui.theme.AppTheme
-import io.kayt.refluent.core.ui.theme.typography.DMSans
-import io.kayt.refluent.core.ui.theme.typography.MixedFont
+import io.kayt.refluent.core.ui.theme.typography.DMSansVazir
 
 @Composable
 fun DeckScreen(
+    onAddCardClick: () -> Unit,
+    onStudyClick: () -> Unit,
     deckViewModel: DeckViewModel = hiltViewModel()
 ) {
-    DeckScreen()
+    DeckScreen(
+        onAddCardClick = onAddCardClick,
+        onStudyClick = onStudyClick,
+    )
 }
 
 @Composable
-private fun DeckScreen() {
+private fun DeckScreen(
+    onAddCardClick: () -> Unit,
+    onStudyClick: () -> Unit,
+) {
     val topmostAppBarState = rememberTopmostAppBarState()
     Scaffold { innerPadding ->
         Box(
@@ -131,15 +138,11 @@ private fun DeckScreen() {
                                 }
                                 .padding(top = 25.dp, bottom = 20.dp)
                         ) {
-                            SecondaryButton({
-
-                            }) {
+                            SecondaryButton(onAddCardClick) {
                                 Text("Add card")
                             }
                             Spacer(modifier = Modifier.width(6.dp))
-                            PrimaryButton({
-
-                            }, modifier = Modifier.weight(1f, true)) {
+                            PrimaryButton(onStudyClick, modifier = Modifier.weight(1f, true)) {
                                 Text("Start study")
                             }
                         }
@@ -198,7 +201,7 @@ private fun DeckScreen() {
                                             })
                                     ),
                                     style = TextStyle(
-                                        fontFamily = DMSans,
+                                        fontFamily = DMSansVazir,
                                         fontWeight = FontWeight.Medium,
                                         fontSize = 18.sp
                                     ),
@@ -207,7 +210,7 @@ private fun DeckScreen() {
                                 Text(
                                     text = "مراسم",
                                     fontSize = 17.sp,
-                                    fontFamily = MixedFont,
+                                    fontFamily = DMSansVazir,
                                     color = Color(0xFF515151),
                                     modifier = Modifier.fillMaxWidth()
                                 )

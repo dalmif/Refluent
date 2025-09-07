@@ -8,11 +8,18 @@ import kotlinx.serialization.Serializable
 @Serializable
 data object DeckRoute
 
-fun NavGraphBuilder.deck() {
+fun NavGraphBuilder.deck(
+    onAddCardClick: () -> Unit,
+    onStudyClick: () -> Unit,
+) {
     composable<DeckRoute> {
-        DeckScreen()
+        DeckScreen(
+            onAddCardClick = onAddCardClick,
+            onStudyClick = onStudyClick
+        )
     }
 }
+
 fun NavController.navigateToDeck() {
     navigate(DeckRoute)
 }

@@ -38,6 +38,7 @@ detekt = "1.23.8"
 lint-compose = "1.4.2"
 
 # Debug
+richeditorCompose = "1.0.0-rc13"
 timber = "5.0.1"
 hyperion = "0.9.38"
 configVars = "4.0.8"
@@ -65,6 +66,7 @@ material = "1.13.0"
 [libraries]
 
 # Kotlin
+androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "androidx-compose-material3" }
 kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
 kotlin-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlin-coroutines" }
 kotlin-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlin-coroutines" }
@@ -115,6 +117,7 @@ lint-compose = { module = "com.slack.lint.compose:compose-lint-checks", version.
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 
 # Debug
+richeditor-compose = { module = "com.mohamedrejeb.richeditor:richeditor-compose", version.ref = "richeditorCompose" }
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 sentry = { group = "io.sentry", name = "sentry-android", version.ref = "sentry" }
 sentry-compose = { group = "io.sentry", name = "sentry-compose-android", version.ref = "sentry" }

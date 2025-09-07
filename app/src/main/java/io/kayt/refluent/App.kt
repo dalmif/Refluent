@@ -8,6 +8,6 @@ import io.kayt.refluent.core.ui.theme.typography.setMixedFont
 class App : Application() {
     override fun onCreate() {
         super.onCreate()
-        setMixedFont(this)
+        setMixedFont()
     }
 }

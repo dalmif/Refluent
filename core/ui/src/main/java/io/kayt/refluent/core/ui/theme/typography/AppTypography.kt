@@ -15,7 +15,7 @@ data class AppTypography(
     val description: TextStyle,
     val navigation: TextStyle,
     val cta: TextStyle,
-    val tabbar: TextStyle,
+    val textFieldTitle: TextStyle,
     val subhead: TextStyle,
     val button: TextStyle,
 )

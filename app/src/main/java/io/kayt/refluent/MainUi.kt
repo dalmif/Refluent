@@ -5,6 +5,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import io.kayt.refluent.feature.deck.deck
 import io.kayt.refluent.feature.deck.navigateToDeck
+import io.kayt.refluent.feature.deck.addcard.addCard
+import io.kayt.refluent.feature.deck.addcard.navigateToAddCard
 import io.kayt.refluent.feature.home.HomeRoute
 import io.kayt.refluent.feature.home.home
 
@@ -21,6 +23,12 @@ fun MainUi() {
                 navController.navigateToDeck()
             }
         )
-        deck()
+        deck(
+            onAddCardClick = {
+                navController.navigateToAddCard()
+            },
+            onStudyClick = {}
+        )
+        addCard(navController)
     }
 }

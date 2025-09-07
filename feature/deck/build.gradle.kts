@@ -5,3 +5,9 @@ plugins {
 android {
     namespace = "io.kayt.feature.content"
 }
+
+dependencies {
+    implementation(libs.richeditor.compose)
+    implementation(libs.androidx.material.icons.extended)
+
+}
