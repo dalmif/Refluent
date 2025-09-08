@@ -39,6 +39,7 @@ lint-compose = "1.4.2"
 
 # Debug
 richeditorCompose = "1.0.0-rc13"
+roomRuntime = "2.7.2"
 timber = "5.0.1"
 hyperion = "0.9.38"
 configVars = "4.0.8"
@@ -67,6 +68,9 @@ material = "1.13.0"
 
 # Kotlin
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "androidx-compose-material3" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomRuntime" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
 kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
 kotlin-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlin-coroutines" }
 kotlin-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlin-coroutines" }
