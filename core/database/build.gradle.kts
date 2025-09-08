@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.dalmif.android.library)
+    alias(libs.plugins.dalmif.android.hilt)
     alias(libs.plugins.ksp)
 }
 
@@ -10,7 +11,7 @@ android {
 dependencies {
     implementation(project(":core:model"))
 
-    implementation(libs.androidx.room.runtime)
+    api(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
 }
