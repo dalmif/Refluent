@@ -8,6 +8,8 @@ import io.kayt.refluent.feature.deck.navigateToDeck
 import io.kayt.refluent.feature.deck.addcard.addCard
 import io.kayt.refluent.feature.deck.addcard.navigateToAddCard
 import io.kayt.refluent.feature.home.HomeRoute
+import io.kayt.refluent.feature.home.adddeck.addDeck
+import io.kayt.refluent.feature.home.adddeck.navigateToAddDeck
 import io.kayt.refluent.feature.home.home
 
 @Composable
@@ -19,6 +21,9 @@ fun MainUi() {
         startDestination = HomeRoute
     ) {
         home(
+            onAddDeckClick = {
+                navController.navigateToAddDeck()
+            },
             onDeckClick = {
                 navController.navigateToDeck()
             }
@@ -30,5 +35,6 @@ fun MainUi() {
             onStudyClick = {}
         )
         addCard(navController)
+        addDeck(navController)
     }
 }

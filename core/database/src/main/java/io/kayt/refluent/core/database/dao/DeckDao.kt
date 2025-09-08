@@ -34,12 +34,12 @@ interface DeckDao {
     suspend fun deleteCard(card: CardEntity)
 
     @Query("SELECT * FROM cards WHERE deckOwnerId = :deckId")
-    suspend fun getCardsForDeck(deckId: Long): Flow<List<CardEntity>>
+    fun getCardsForDeck(deckId: Long): Flow<List<CardEntity>>
 
     @Query(
         "SELECT d.uid, d.name, d.color1, d.color2, COUNT(c.uid) AS totalCards, " +
                 "SUM(CASE WHEN c.nextReview IS NOT NULL AND c.nextReview <= :nowTs THEN 1 ELSE 0 END) AS dueCards " +
                 "FROM decks AS d LEFT JOIN cards AS c ON c.deckOwnerId = d.uid GROUP BY d.uid, d.name ORDER BY d.createdDateTime DESC;"
     )
-    suspend fun getDeckWithCardCounts(nowTs: Long = System.currentTimeMillis()): Flow<List<DeckWithStats>>
+    fun getDeckWithCardCounts(nowTs: Long = System.currentTimeMillis()): Flow<List<DeckWithStats>>
 }

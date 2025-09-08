@@ -29,7 +29,7 @@ class DeckRepository @Inject constructor(
         }
     }
 
-    suspend fun getAllDeck(): Flow<List<Deck>> = deckDao
+    fun getAllDeck(): Flow<List<Deck>> = deckDao
         .getDeckWithCardCounts()
         .map { list ->
             list.map {

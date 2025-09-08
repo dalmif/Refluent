@@ -5,3 +5,7 @@ plugins {
 android {
     namespace = "io.kayt.feature.content"
 }
+
+dependencies {
+    implementation(project(":core:data"))
+}

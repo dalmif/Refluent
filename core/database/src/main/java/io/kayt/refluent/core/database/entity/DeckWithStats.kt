@@ -1,7 +1,7 @@
 package io.kayt.refluent.core.database.entity
 
 data class DeckWithStats(
-    val deckId: Long,
+    val uid: Long,
     val name: String,
     val color1: Int,
     val color2: Int,
