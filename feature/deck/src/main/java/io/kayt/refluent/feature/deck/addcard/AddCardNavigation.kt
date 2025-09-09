@@ -15,27 +15,32 @@ import io.kayt.refluent.core.ui.theme.AppTheme
 import kotlinx.serialization.Serializable
 
 @Serializable
-data object AddCardRoute
+data class AddCardRoute(val deckId: Long)
 
 @OptIn(ExperimentalMaterial3Api::class)
 fun NavGraphBuilder.addCard(navController: NavController) {
     dialog<AddCardRoute> {
+        val state = rememberModalBottomSheetState(
+            skipPartiallyExpanded = true,
+            confirmValueChange = { it != SheetValue.Hidden }
+        )
+
         ModalBottomSheet(
             containerColor = AppTheme.colors.background,
             modifier = Modifier
                 .statusBarsPadding()
                 .padding(top = 20.dp),
-            sheetState = rememberModalBottomSheetState(
-                skipPartiallyExpanded = true,
-                confirmValueChange = { it != SheetValue.Hidden }),
+            sheetState = state,
             onDismissRequest = {
                 navController.popBackStack()
             }) {
-            AddCardScreen()
+            AddCardScreen(
+                onAddClick = { navController.popBackStack() }
+            )
         }
     }
 }
 
-fun NavController.navigateToAddCard() {
-    navigate(AddCardRoute)
+fun NavController.navigateToAddCard(deckId: Long) {
+    navigate(AddCardRoute(deckId))
 }

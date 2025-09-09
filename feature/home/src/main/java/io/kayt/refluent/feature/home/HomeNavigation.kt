@@ -9,7 +9,7 @@ data object HomeRoute
 
 fun NavGraphBuilder.home(
     onAddDeckClick : () -> Unit,
-    onDeckClick : (Int) -> Unit
+    onDeckClick : (Long) -> Unit
 ) {
     composable<HomeRoute> {
         HomeScreen(

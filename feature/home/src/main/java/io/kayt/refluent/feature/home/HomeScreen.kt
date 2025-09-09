@@ -43,7 +43,7 @@ import io.kayt.refluent.feature.home.component.SearchTextFiled
 @Composable
 internal fun HomeScreen(
     onAddDeckClick: () -> Unit,
-    onDeckClick: (Int) -> Unit,
+    onDeckClick: (Long) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -59,7 +59,7 @@ internal fun HomeScreen(
 private fun HomeScreen(
     state: HomeUiState,
     onAddDeckClick: () -> Unit,
-    onDeckClick: (Int) -> Unit,
+    onDeckClick: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
     MeshGradient(
@@ -154,7 +154,7 @@ private fun HomeScreen(
                                 DeckCard(
                                     deck = decks[it],
                                     modifier = Modifier.padding(bottom = 10.dp),
-                                    onClick = { onDeckClick(0) },
+                                    onClick = { onDeckClick(decks[it].id) },
                                     onStudyClick = {}
                                 )
                             }

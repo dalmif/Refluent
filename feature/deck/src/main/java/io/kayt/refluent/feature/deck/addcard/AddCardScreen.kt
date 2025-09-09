@@ -40,6 +40,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.OutlinedRichTextEditor
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditorDefaults
@@ -51,15 +52,36 @@ import io.kayt.refluent.core.ui.theme.typography.DMSansVazir
 import io.kayt.refluent.feature.deck.component.RichTextStyleRow
 
 @Composable
-fun AddCardScreen(viewModel: AddCardViewModel = hiltViewModel()) {
-    AddCardScreen()
+fun AddCardScreen(
+    onAddClick: () -> Unit,
+    viewModel: AddCardViewModel = hiltViewModel(),
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    AddCardScreen(
+        state = state,
+        onFrontSideChange = viewModel::onFrontSideChange,
+        onBackSideChange = viewModel::onBackSideChange,
+        onCommentChange = viewModel::onCommentChange,
+        onAddCardButton = {
+            viewModel.onAddCardButton()
+            onAddClick()
+        },
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AddCardScreen() {
+private fun AddCardScreen(
+    state: AddCardUiState,
+    onFrontSideChange: (String) -> Unit,
+    onBackSideChange: (String) -> Unit,
+    onCommentChange: (String) -> Unit,
+    onAddCardButton: () -> Unit
+) {
     Scaffold { paddingValues ->
         Box {
+            val richState = rememberRichTextState()
             Column(
                 Modifier
                     .fillMaxSize()
@@ -69,9 +91,17 @@ private fun AddCardScreen() {
                     .padding(vertical = 15.dp)
             ) {
                 Row {
-                    SideTextColumn("Front Side")
+                    SideTextColumn(
+                        title = "Front Side",
+                        value = state.frontSide,
+                        onValueChange = onFrontSideChange
+                    )
                     Spacer(Modifier.width(10.dp))
-                    SideTextColumn("Back Side")
+                    SideTextColumn(
+                        title = "Back Side",
+                        value = state.backSide,
+                        onValueChange = onBackSideChange
+                    )
                 }
                 Spacer(Modifier.height(18.dp))
                 Text(
@@ -79,8 +109,6 @@ private fun AddCardScreen() {
                     style = AppTheme.typography.textFieldTitle,
                     modifier = Modifier.padding(start = 8.dp, bottom = 8.dp),
                 )
-
-                val state = rememberRichTextState()
 
                 var active by remember { mutableStateOf(false) }
                 Column(
@@ -95,12 +123,14 @@ private fun AddCardScreen() {
                         )
                 ) {
                     RichTextStyleRow(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                        state = state,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        state = richState,
                     )
                     HorizontalDivider(color = Color(0xFFF6F6F6))
                     OutlinedRichTextEditor(
-                        state = state,
+                        state = richState,
                         colors = RichTextEditorDefaults.outlinedRichTextEditorColors(
                             focusedBorderColor = Color.Transparent,
                             errorBorderColor = Color.Transparent,
@@ -134,7 +164,11 @@ private fun AddCardScreen() {
             }
 
             SecondaryBigButton(
-                {}, modifier = Modifier
+                onClick = {
+                    onCommentChange(richState.toHtml())
+                    onAddCardButton()
+                },
+                modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 30.dp)
                     .padding(bottom = 20.dp)
@@ -182,7 +216,7 @@ private fun AiButton(text: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun RowScope.SideTextColumn(title: String) {
+private fun RowScope.SideTextColumn(title: String, value: String, onValueChange: (String) -> Unit) {
     Column(modifier = Modifier.weight(0.5f)) {
         Text(
             text = title,
@@ -190,11 +224,13 @@ private fun RowScope.SideTextColumn(title: String) {
             modifier = Modifier.padding(start = 8.dp),
         )
         Spacer(modifier = Modifier.height(5.dp))
-        var text by remember { mutableStateOf("") }
         var active by remember { mutableStateOf(false) }
         BasicTextField(
-            value = text,
-            textStyle = AppTheme.typography.body2.copy(fontFamily = DMSansVazir, fontWeight = FontWeight.Bold),
+            value = value,
+            textStyle = AppTheme.typography.body2.copy(
+                fontFamily = DMSansVazir,
+                fontWeight = FontWeight.Bold
+            ),
             modifier = Modifier
                 .onFocusEvent({
                     active = it.hasFocus
@@ -206,12 +242,10 @@ private fun RowScope.SideTextColumn(title: String) {
                     shape = RoundedCornerShape(10.dp)
                 )
                 .padding(horizontal = 10.dp, vertical = 10.dp),
-            onValueChange = {
-                text = it
-            },
+            onValueChange = onValueChange,
             decorationBox = {
                 it()
-                if (text.isEmpty()) {
+                if (value.isEmpty()) {
                     Text(
                         text = "Write your text here",
                         style = AppTheme.typography.body2,

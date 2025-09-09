@@ -25,12 +25,12 @@ fun MainUi() {
                 navController.navigateToAddDeck()
             },
             onDeckClick = {
-                navController.navigateToDeck()
+                navController.navigateToDeck(it)
             }
         )
         deck(
             onAddCardClick = {
-                navController.navigateToAddCard()
+                navController.navigateToAddCard(it)
             },
             onStudyClick = {}
         )

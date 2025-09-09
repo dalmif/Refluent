@@ -1,7 +1,9 @@
 package io.kayt.refluent.core.data
 
+import io.kayt.core.model.Card
 import io.kayt.core.model.Deck
 import io.kayt.refluent.core.database.AppDatabase
+import io.kayt.refluent.core.database.entity.CardEntity
 import io.kayt.refluent.core.database.entity.DeckEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -29,11 +31,33 @@ class DeckRepository @Inject constructor(
         }
     }
 
-    fun getAllDeck(): Flow<List<Deck>> = deckDao
-        .getDeckWithCardCounts()
-        .map { list ->
-            list.map {
+    suspend fun addNewCard(
+        deckId: Long,
+        frontSide: String,
+        backSide: String,
+        comment: String
+    ) {
+        withContext(Dispatchers.IO) {
+            deckDao.insertCard(
+                CardEntity(
+                    deckOwnerId = deckId,
+                    frontSide = frontSide,
+                    backSide = backSide,
+                    comment = comment,
+                    phonetic = "",
+                    isArchived = false,
+                    tags = ""
+                )
+            )
+        }
+    }
+
+    fun getDeckById(deckId: Long): Flow<Deck> = deckDao
+        .getDeckById(deckId)
+        .map {
+            it.let {
                 Deck(
+                    id = it.uid,
                     name = it.name,
                     colors = Pair(it.color1, it.color2),
                     totalCards = it.totalCards,
@@ -42,4 +66,42 @@ class DeckRepository @Inject constructor(
             }
         }
         .flowOn(Dispatchers.IO)
+
+    fun getAllDeck(): Flow<List<Deck>> = deckDao
+        .getDeckWithCardCounts()
+        .map { list ->
+            list.map {
+                Deck(
+                    id = it.uid,
+                    name = it.name,
+                    colors = Pair(it.color1, it.color2),
+                    totalCards = it.totalCards,
+                    dueCards = it.dueCards
+                )
+            }
+        }
+        .flowOn(Dispatchers.IO)
+
+    fun getCardsForDeck(deckId: Long): Flow<List<Card>> = deckDao
+        .getCardsForDeck(deckId)
+        .map {
+            it.map {
+                Card(
+                    id = it.uid,
+                    front = it.frontSide,
+                    back = it.backSide,
+                    deckId = it.deckOwnerId,
+                    interval = it.interval,
+                    repetition = it.repetition,
+                    easeFactor = it.easeFactor,
+                    dueDate = it.nextReview,
+                    lastReviewed = it.lastReviewed ?: 0L,
+                    createdDateTime = it.createdDateTime,
+                    isArchived = it.isArchived,
+                    phonetic = it.phonetic,
+                    comment = it.comment,
+                    tags = it.tags
+                )
+            }
+        }
 }
