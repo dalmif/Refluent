@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -48,7 +49,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.OutlinedRichTextEditor
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditorDefaults
 import io.kayt.refluent.core.ui.R
@@ -72,7 +72,7 @@ fun AddCardScreen(
         phonetic = phonetic,
         onFrontSideChange = viewModel::onFrontSideChange,
         onBackSideChange = viewModel::onBackSideChange,
-        onCommentChange = viewModel::onCommentChange,
+        onAiGenerateClick = viewModel::onAiGenerateClick,
         onAddCardButton = {
             viewModel.onAddCardButton()
             onAddClick()
@@ -87,12 +87,11 @@ private fun AddCardScreen(
     phonetic: String?,
     onFrontSideChange: (String) -> Unit,
     onBackSideChange: (String) -> Unit,
-    onCommentChange: (String) -> Unit,
+    onAiGenerateClick: (AiGenerate) -> Unit,
     onAddCardButton: () -> Unit
 ) {
     Scaffold { paddingValues ->
         Box {
-            val richState = rememberRichTextState()
             Column(
                 Modifier
                     .fillMaxSize()
@@ -138,11 +137,11 @@ private fun AddCardScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp),
-                        state = richState,
+                        state = state.commentRichText,
                     )
                     HorizontalDivider(color = Color(0xFFF6F6F6))
                     OutlinedRichTextEditor(
-                        state = richState,
+                        state = state.commentRichText,
                         colors = RichTextEditorDefaults.outlinedRichTextEditorColors(
                             focusedBorderColor = Color.Transparent,
                             errorBorderColor = Color.Transparent,
@@ -166,18 +165,23 @@ private fun AddCardScreen(
                     style = AppTheme.typography.textFieldTitle,
                     modifier = Modifier.padding(start = 8.dp, bottom = 8.dp, top = 16.dp),
                 )
-                AiButton(text = "Explain the front side")
-                Spacer(Modifier.height(7.dp))
-                AiButton(text = "Make some example from front side")
-                Spacer(Modifier.height(7.dp))
-                AiButton(text = "Add new AI comment generator")
 
+                AiButton(
+                    text = "Explain the front side",
+                    onClick = { onAiGenerateClick(AiGenerate.MakeDefinition) },
+                    isLoading = state.aiButtonLoading.isLoading(1)
+                )
+                Spacer(Modifier.height(7.dp))
+                AiButton(
+                    text = "Make some example from front side",
+                    onClick = { onAiGenerateClick(AiGenerate.MakeExampleSentences) },
+                    isLoading = state.aiButtonLoading.isLoading(0)
+                )
                 Spacer(Modifier.height(100.dp))
             }
 
             SecondaryBigButton(
                 onClick = {
-                    onCommentChange(richState.toHtml())
                     onAddCardButton()
                 },
                 modifier = Modifier
@@ -193,7 +197,12 @@ private fun AddCardScreen(
 }
 
 @Composable
-private fun AiButton(text: String, modifier: Modifier = Modifier) {
+private fun AiButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    isLoading: Boolean = false
+) {
     Row(
         modifier = modifier
             .border(
@@ -205,15 +214,29 @@ private fun AiButton(text: String, modifier: Modifier = Modifier) {
                 shape = CircleShape
             )
             .clip(CircleShape)
-            .clickable {}
+            .clickable(onClick = onClick, enabled = !isLoading)
             .padding(vertical = 8.dp, horizontal = 14.dp)
     ) {
-        Icon(
-            painter = painterResource(R.drawable.ic_ai_model),
-            contentDescription = null,
-            tint = Color(0xFFCA40D6),
-            modifier = Modifier.size(20.dp)
-        )
+        if (isLoading) {
+            Box(
+                Modifier
+                    .size(20.dp)
+                    .padding(2.dp)
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.fillMaxSize(),
+                    color = Color(0xFFCA40D6),
+                    strokeWidth = 2.dp
+                )
+            }
+        } else {
+            Icon(
+                painter = painterResource(R.drawable.ic_ai_model),
+                contentDescription = null,
+                tint = Color(0xFFCA40D6),
+                modifier = Modifier.size(20.dp)
+            )
+        }
         Spacer(Modifier.width(4.dp))
         Text(
             text,
