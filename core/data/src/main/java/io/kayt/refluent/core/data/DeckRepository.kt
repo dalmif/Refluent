@@ -15,13 +15,13 @@ import javax.inject.Singleton
 
 @Singleton
 class DeckRepository @Inject constructor(
-    private val database: AppDatabase
+    private val appDatabase: AppDatabase
 ) {
-    private val deckDao by lazy { database.deckDao() }
+    private val deckDataAccess by lazy { appDatabase.deckDao() }
 
     suspend fun addNewDeck(name: String, colors: Pair<Int, Int>) {
         withContext(Dispatchers.IO) {
-            deckDao.newDeck(
+            deckDataAccess.newDeck(
                 DeckEntity(
                     name = name,
                     color1 = colors.first,
@@ -38,7 +38,7 @@ class DeckRepository @Inject constructor(
         comment: String
     ) {
         withContext(Dispatchers.IO) {
-            deckDao.insertCard(
+            deckDataAccess.insertCard(
                 CardEntity(
                     deckOwnerId = deckId,
                     frontSide = frontSide,
@@ -52,7 +52,7 @@ class DeckRepository @Inject constructor(
         }
     }
 
-    fun getDeckById(deckId: Long): Flow<Deck> = deckDao
+    fun getDeckById(deckId: Long): Flow<Deck> = deckDataAccess
         .getDeckById(deckId)
         .map {
             it.let {
@@ -67,7 +67,7 @@ class DeckRepository @Inject constructor(
         }
         .flowOn(Dispatchers.IO)
 
-    fun getAllDeck(): Flow<List<Deck>> = deckDao
+    fun getAllDeck(): Flow<List<Deck>> = deckDataAccess
         .getDeckWithCardCounts()
         .map { list ->
             list.map {
@@ -82,10 +82,10 @@ class DeckRepository @Inject constructor(
         }
         .flowOn(Dispatchers.IO)
 
-    fun getCardsForDeck(deckId: Long): Flow<List<Card>> = deckDao
+    fun getCardsForDeck(deckId: Long): Flow<List<Card>> = deckDataAccess
         .getCardsForDeck(deckId)
-        .map {
-            it.map {
+        .map { cards ->
+            cards.map {
                 Card(
                     id = it.uid,
                     front = it.frontSide,

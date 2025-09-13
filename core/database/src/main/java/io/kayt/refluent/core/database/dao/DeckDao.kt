@@ -33,7 +33,7 @@ interface DeckDao {
     @Delete
     suspend fun deleteCard(card: CardEntity)
 
-    @Query("SELECT * FROM cards WHERE deckOwnerId = :deckId")
+    @Query("SELECT * FROM cards WHERE deckOwnerId = :deckId ORDER BY uid DESC")
     fun getCardsForDeck(deckId: Long): Flow<List<CardEntity>>
 
     @Query(

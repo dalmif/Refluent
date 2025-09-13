@@ -98,3 +98,10 @@ fun Application.setMixedFont() {
         DMSansVazir = DMSans
     }
 }
+
+val Charis = FontFamily(
+    Font(
+        resId = R.font.charis_regular,
+        weight = FontWeight.Normal
+    )
+)

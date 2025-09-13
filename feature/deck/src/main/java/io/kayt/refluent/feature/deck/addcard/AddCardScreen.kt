@@ -19,6 +19,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -37,7 +38,13 @@ import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -48,6 +55,7 @@ import io.kayt.refluent.core.ui.R
 import io.kayt.refluent.core.ui.component.button.SecondaryBigButton
 import io.kayt.refluent.core.ui.theme.AppTheme
 import io.kayt.refluent.core.ui.theme.colors.Purple1
+import io.kayt.refluent.core.ui.theme.typography.Charis
 import io.kayt.refluent.core.ui.theme.typography.DMSansVazir
 import io.kayt.refluent.feature.deck.component.RichTextStyleRow
 
@@ -57,9 +65,11 @@ fun AddCardScreen(
     viewModel: AddCardViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val phonetic by viewModel.phonetic.collectAsStateWithLifecycle()
 
     AddCardScreen(
         state = state,
+        phonetic = phonetic,
         onFrontSideChange = viewModel::onFrontSideChange,
         onBackSideChange = viewModel::onBackSideChange,
         onCommentChange = viewModel::onCommentChange,
@@ -74,6 +84,7 @@ fun AddCardScreen(
 @Composable
 private fun AddCardScreen(
     state: AddCardUiState,
+    phonetic: String?,
     onFrontSideChange: (String) -> Unit,
     onBackSideChange: (String) -> Unit,
     onCommentChange: (String) -> Unit,
@@ -94,6 +105,7 @@ private fun AddCardScreen(
                     SideTextColumn(
                         title = "Front Side",
                         value = state.frontSide,
+                        phonetic = phonetic,
                         onValueChange = onFrontSideChange
                     )
                     Spacer(Modifier.width(10.dp))
@@ -216,7 +228,12 @@ private fun AiButton(text: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun RowScope.SideTextColumn(title: String, value: String, onValueChange: (String) -> Unit) {
+private fun RowScope.SideTextColumn(
+    title: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    phonetic: String? = null
+) {
     Column(modifier = Modifier.weight(0.5f)) {
         Text(
             text = title,
@@ -225,34 +242,88 @@ private fun RowScope.SideTextColumn(title: String, value: String, onValueChange:
         )
         Spacer(modifier = Modifier.height(5.dp))
         var active by remember { mutableStateOf(false) }
-        BasicTextField(
-            value = value,
-            textStyle = AppTheme.typography.body2.copy(
-                fontFamily = DMSansVazir,
-                fontWeight = FontWeight.Bold
-            ),
-            modifier = Modifier
-                .onFocusEvent({
-                    active = it.hasFocus
-                })
-                .aspectRatio(1.33f)
-                .border(
-                    if (!active) 1.dp else 2.dp,
-                    color = if (!active) Color(0xFFBEBEBE) else Purple1,
-                    shape = RoundedCornerShape(10.dp)
-                )
-                .padding(horizontal = 10.dp, vertical = 10.dp),
-            onValueChange = onValueChange,
-            decorationBox = {
-                it()
-                if (value.isEmpty()) {
-                    Text(
-                        text = "Write your text here",
-                        style = AppTheme.typography.body2,
-                        color = Color(0xFF888888)
+        Box {
+            BasicTextField(
+                value = value,
+                textStyle = AppTheme.typography.body2.copy(
+                    fontFamily = DMSansVazir,
+                    fontWeight = FontWeight.Bold
+                ),
+                modifier = Modifier
+                    .onFocusEvent({
+                        active = it.hasFocus
+                    })
+                    .aspectRatio(1.33f)
+                    .border(
+                        if (!active) 1.dp else 2.dp,
+                        color = if (!active) Color(0xFFBEBEBE) else Purple1,
+                        shape = RoundedCornerShape(10.dp)
                     )
+                    .padding(horizontal = 10.dp, vertical = 10.dp),
+                onValueChange = onValueChange,
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Words
+                ),
+                visualTransformation = nonEditableSuffixTransformation(
+                    phonetic ?: ""
+                ).takeIf { value.isNotBlank() } ?: VisualTransformation.None,
+                decorationBox = {
+                    it()
+                    if (value.isEmpty()) {
+                        Text(
+                            text = "Write your text here",
+                            style = AppTheme.typography.body2,
+                            color = Color(0xFF888888)
+                        )
+                    }
                 }
-            }
-        )
+            )
+        }
     }
+}
+
+
+/**
+ * VisualTransformation that appends a non-editable, non-selectable suffix.
+ * The caret/selection cannot move into the suffix.
+ */
+fun nonEditableSuffixTransformation(
+    suffix: String,
+    suffixStyle: SpanStyle = SpanStyle(color = Color.Gray)
+): VisualTransformation = VisualTransformation { text ->
+    val base = text.text
+    val display = buildString {
+        append(base)
+        if (suffix.isNotEmpty()) {
+            append(" ")
+            append(suffix)
+        }
+    }
+
+    // Build styled text: normal content + styled suffix
+    val annotated = AnnotatedString.Builder(display).apply {
+        if (suffix.isNotEmpty()) {
+            addStyle(
+                suffixStyle.copy(fontFamily = Charis, fontWeight = FontWeight.Normal),
+                start = base.length + 1,
+                end = base.length + suffix.length + 1
+            )
+        }
+    }.toAnnotatedString()
+
+    // Map original offsets <-> transformed offsets, clamping anything in the suffix
+    val mapping = object : OffsetMapping {
+        override fun originalToTransformed(offset: Int): Int {
+            // original length maps to just before suffix
+            val clamped = offset.coerceIn(0, base.length)
+            return clamped // positions 0..base.length
+        }
+
+        override fun transformedToOriginal(offset: Int): Int {
+            // any position in the suffix maps back to the last original index
+            return offset.coerceIn(0, base.length)
+        }
+    }
+
+    TransformedText(annotated, mapping)
 }
