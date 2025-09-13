@@ -60,6 +60,7 @@ class AddCardViewModel @Inject constructor(
                 deckId = deckId,
                 frontSide = currentState.frontSide,
                 backSide = currentState.backSide,
+                phonetic = phonetic.value ?: "",
                 comment = currentState.commentRichText.toHtml()
             )
         }

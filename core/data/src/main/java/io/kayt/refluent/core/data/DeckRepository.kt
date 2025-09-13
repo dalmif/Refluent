@@ -35,7 +35,8 @@ class DeckRepository @Inject constructor(
         deckId: Long,
         frontSide: String,
         backSide: String,
-        comment: String
+        comment: String,
+        phonetic : String
     ) {
         withContext(Dispatchers.IO) {
             deckDataAccess.insertCard(
@@ -44,7 +45,7 @@ class DeckRepository @Inject constructor(
                     frontSide = frontSide,
                     backSide = backSide,
                     comment = comment,
-                    phonetic = "",
+                    phonetic = phonetic,
                     isArchived = false,
                     tags = ""
                 )
