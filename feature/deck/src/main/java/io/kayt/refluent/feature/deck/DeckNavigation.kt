@@ -11,12 +11,12 @@ data class DeckRoute(val deckId: Long)
 
 fun NavGraphBuilder.deck(
     onAddCardClick: (deckId: Long) -> Unit,
-    onStudyClick: () -> Unit,
+    onStudyClick: (deckId: Long) -> Unit,
 ) {
-    composable<DeckRoute> {
+    composable<DeckRoute> { route ->
         DeckScreen(
-            onAddCardClick = { onAddCardClick(it.toRoute<DeckRoute>().deckId) },
-            onStudyClick = onStudyClick
+            onAddCardClick = { onAddCardClick(route.toRoute<DeckRoute>().deckId) },
+            onStudyClick = { onStudyClick(route.toRoute<DeckRoute>().deckId) }
         )
     }
 }

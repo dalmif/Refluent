@@ -44,8 +44,8 @@ val appTypography = AppTypography(
     ),
     headline4 = TextStyle(
         fontFamily = DMSans,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 17.sp,
+        fontWeight = FontWeight.Medium,
+        fontSize = 16.sp,
         letterSpacing = 0.sp,
         lineHeight = 20.sp
     ),
@@ -77,12 +77,12 @@ val appTypography = AppTypography(
         letterSpacing = 0.sp,
         lineHeight = 20.sp
     ),
-    navigation = TextStyle(
+    cardText = TextStyle(
         fontFamily = DMSans,
         fontWeight = FontWeight.Bold,
-        fontSize = 17.sp,
+        fontSize = 28.sp,
         letterSpacing = 0.sp,
-        lineHeight = 20.sp
+        lineHeight = 36.sp
     ),
     cta = TextStyle(
         fontFamily = DMSans,

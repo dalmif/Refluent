@@ -13,7 +13,7 @@ data class AppTypography(
     val body2: TextStyle,
     val tag: TextStyle,
     val description: TextStyle,
-    val navigation: TextStyle,
+    val cardText: TextStyle,
     val cta: TextStyle,
     val textFieldTitle: TextStyle,
     val subhead: TextStyle,

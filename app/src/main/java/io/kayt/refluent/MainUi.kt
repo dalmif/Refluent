@@ -3,10 +3,12 @@ package io.kayt.refluent
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
-import io.kayt.refluent.feature.deck.deck
-import io.kayt.refluent.feature.deck.navigateToDeck
 import io.kayt.refluent.feature.deck.addcard.addCard
 import io.kayt.refluent.feature.deck.addcard.navigateToAddCard
+import io.kayt.refluent.feature.deck.deck
+import io.kayt.refluent.feature.deck.flashcard.flashCard
+import io.kayt.refluent.feature.deck.flashcard.navigateToFlashcard
+import io.kayt.refluent.feature.deck.navigateToDeck
 import io.kayt.refluent.feature.home.HomeRoute
 import io.kayt.refluent.feature.home.adddeck.addDeck
 import io.kayt.refluent.feature.home.adddeck.navigateToAddDeck
@@ -32,8 +34,11 @@ fun MainUi() {
             onAddCardClick = {
                 navController.navigateToAddCard(it)
             },
-            onStudyClick = {}
+            onStudyClick = {
+                navController.navigateToFlashcard(it)
+            }
         )
+        flashCard()
         addCard(navController)
         addDeck(navController)
     }
