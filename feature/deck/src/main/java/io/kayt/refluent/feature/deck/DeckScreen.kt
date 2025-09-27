@@ -136,9 +136,9 @@ private fun DeckScreen(
                                 )
                             }
                         }
-                        HeadlessTopmostAppBar(topmostAppBarState) { paddings, collapseFraction ->
+                        HeadlessTopmostAppBar(topmostAppBarState, minHeight = 25.dp) { _, collapseFraction ->
                             val scale = lerp(1f, 0.9f, EaseOutQuint.transform(collapseFraction))
-                            val offset = lerp(0.dp, 20.dp, collapseFraction)
+                            val offset = lerp(0.dp, 40.dp, collapseFraction)
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()

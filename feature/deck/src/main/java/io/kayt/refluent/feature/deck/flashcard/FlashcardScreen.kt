@@ -64,17 +64,21 @@ import io.kayt.refluent.core.ui.theme.typography.DMSansVazir
 
 @Composable
 fun FlashcardScreen(
-    flashcardViewModel: FlashcardViewModel = hiltViewModel()
+    viewModel: FlashcardViewModel = hiltViewModel()
 ) {
-    val state by flashcardViewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     FlashcardScreen(
-        state = state
+        state = state,
+        onSwipeRight = viewModel::markCardAsGood,
+        onSwipeLeft = viewModel::markCardAsBad,
     )
 }
 
 @Composable
 private fun FlashcardScreen(
     state: FlashcardUiState,
+    onSwipeRight: (Card) -> Unit,
+    onSwipeLeft: (Card) -> Unit,
 ) {
     Scaffold { innerPadding ->
         Column(
@@ -91,111 +95,111 @@ private fun FlashcardScreen(
             when (state) {
                 is FlashcardUiState.Loading -> {
                     // Loading state
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Loading...")
-                    }
                 }
 
                 is FlashcardUiState.Success -> {
-                    if (state.cards.isNotEmpty()) {
-                        val flipState = remember { mutableStateOf(0 to false) }
-                        val swipeableState = rememberSwipeableCardsState(
-                            itemCount = { state.cards.size }
-                        )
+                    val flipState = remember { mutableStateOf(0 to false) }
+                    val swipeableState = rememberSwipeableCardsState(
+                        itemCount = { state.cards.size }
+                    )
 
-                        LazySwipeableCards(
-                            modifier = Modifier
-                                .padding(10.dp)
-                                .padding(vertical = 20.dp)
-                                .weight(1f),
-                            state = swipeableState,
+                    Box(
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .padding(vertical = 20.dp)
+                            .weight(1f)
+                    ) {
+                        val cardVisible =
+                            remember { derivedStateOf { swipeableState.currentCardIndex != state.cards.size } }
+                        if (cardVisible.value) {
+                            LazySwipeableCards(
+                                state = swipeableState,
+                                onSwipe = { card, direction ->
+                                    when (direction) {
+                                        SwipeableCardDirection.Right -> {
+                                            onSwipeRight(card)
+                                        }
 
-                            onSwipe = { profile, direction ->
-                                when (direction) {
-                                    SwipeableCardDirection.Right -> { /* Handle right swipe */
+                                        SwipeableCardDirection.Left -> {
+                                            onSwipeLeft(card)
+                                        }
                                     }
-
-                                    SwipeableCardDirection.Left -> { /* Handle left swipe */
-                                    }
+                                }
+                            ) {
+                                items(state.cards) { card, index, offset ->
+                                    SwipeableCard(
+                                        card = card,
+                                        isOnTop = swipeableState.currentCardIndex >= index,
+                                        isVisible = swipeableState.currentCardIndex + 1 >= index,
+                                        isFront = flipState.value.second.not()
+                                            .takeIf { flipState.value.first == index } ?: true,
+                                        onFlipRequested = {
+                                            flipState.value =
+                                                if (flipState.value.first == index) index to !flipState.value.second
+                                                else index to true
+                                        },
+                                    )
                                 }
                             }
-                        ) {
-                            items(state.cards) { card, index, offset ->
-                                SwipeableCard(
-                                    card = card,
-                                    isOnTop = swipeableState.currentCardIndex >= index,
-                                    isVisible = swipeableState.currentCardIndex + 1 >= index,
-                                    isFront = flipState.value.second.not()
-                                        .takeIf { flipState.value.first == index } ?: true,
-                                    onFlipRequested = {
-                                        flipState.value =
-                                            if (flipState.value.first == index) index to !flipState.value.second
-                                            else index to true
-                                    },
-                                )
-                            }
-                        }
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 60.dp),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            ActionButton(
-                                icon = painterResource(R.drawable.ic_wrong),
-                                backgroundColor = Color(0x99FFFFFF),
-                                borderColor = Color(0xFFB22525),
-                                iconTint = Color(0xFFB22525),
-                                iconSize = 38.dp,
-                                onClick = {
-                                    swipeableState.swipe(SwipeableCardDirection.Left)
-                                }
-                            )
-                            Spacer(Modifier.width(30.dp))
-                            ActionButton(
-                                icon = painterResource(R.drawable.ic_exchange),
-                                backgroundColor = Color(0xFF3A50AF),
-                                borderColor = Color(0xFF3A50AF),
-                                iconTint = Color.White,
-                                size = 97.dp,
-                                iconSize = 37.dp,
-                                shadow = true,
-                                onClick = {
-                                    flipState.value =
-                                        if (flipState.value.first == swipeableState.currentCardIndex) swipeableState.currentCardIndex to !flipState.value.second
-                                        else swipeableState.currentCardIndex to true
-                                }
-                            )
-                            Spacer(Modifier.width(30.dp))
-                            ActionButton(
-                                icon = painterResource(R.drawable.ic_vector),
-                                backgroundColor = Color(0x99FFFFFF),
-                                borderColor = Color(0xFF1B8F1D),
-                                iconTint = Color(0xFF1B8F1D),
-                                iconSize = 33.dp,
-                                onClick = {
-                                    swipeableState.swipe(SwipeableCardDirection.Right)
-                                }
-                            )
-                        }
-                    } else {
-                        // No more cards
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "No more cards!",
-                                style = AppTheme.typography.headline1,
-                                textAlign = TextAlign.Center
-                            )
+                        } else {
+                            Text("Nothing Here")
                         }
                     }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 60.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+
+                        ActionButton(
+                            icon = painterResource(R.drawable.ic_wrong),
+                            backgroundColor = Color(0x99FFFFFF),
+                            borderColor = Color(0xFFB22525),
+                            iconTint = Color(0xFFB22525),
+                            iconSize = 38.dp,
+                            onClick = {
+                                println("mmd here is the card swuiped size: ${state.cards.size} and index: ${swipeableState.currentCardIndex}")
+                                if (state.cards.size > swipeableState.currentCardIndex) {
+                                    println("mmd here DONE: ${state.cards.size} and index: ${swipeableState.currentCardIndex}")
+                                    onSwipeLeft(state.cards[swipeableState.currentCardIndex])
+                                }
+                                swipeableState.swipe(SwipeableCardDirection.Left)
+                            }
+                        )
+                        Spacer(Modifier.width(30.dp))
+                        ActionButton(
+                            icon = painterResource(R.drawable.ic_exchange),
+                            backgroundColor = Color(0xFF3A50AF),
+                            borderColor = Color(0xFF3A50AF),
+                            iconTint = Color.White,
+                            size = 97.dp,
+                            iconSize = 37.dp,
+                            shadow = true,
+                            onClick = {
+                                flipState.value =
+                                    if (flipState.value.first == swipeableState.currentCardIndex) swipeableState.currentCardIndex to !flipState.value.second
+                                    else swipeableState.currentCardIndex to true
+                            }
+                        )
+                        Spacer(Modifier.width(30.dp))
+                        ActionButton(
+                            icon = painterResource(R.drawable.ic_vector),
+                            backgroundColor = Color(0x99FFFFFF),
+                            borderColor = Color(0xFF1B8F1D),
+                            iconTint = Color(0xFF1B8F1D),
+                            iconSize = 33.dp,
+                            onClick = {
+                                if (state.cards.size > swipeableState.currentCardIndex) {
+                                    onSwipeRight(state.cards[swipeableState.currentCardIndex])
+                                }
+                                swipeableState.swipe(SwipeableCardDirection.Right)
+                            }
+                        )
+                    }
+
                 }
             }
         }
@@ -309,10 +313,12 @@ private fun SwipeableCard(
                             .toString()
                             .trim()
                     if (plainText.isNotBlank()) {
-                        Column(Modifier
-                            .fillMaxWidth()
-                            .weight(2f)
-                            .padding(top = 20.dp)) {
+                        Column(
+                            Modifier
+                                .fillMaxWidth()
+                                .weight(2f)
+                                .padding(top = 20.dp)
+                        ) {
                             Row {
                                 Icon(
                                     painter = painterResource(R.drawable.ic_comment),

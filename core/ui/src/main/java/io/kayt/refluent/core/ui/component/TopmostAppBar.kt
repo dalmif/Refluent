@@ -5,7 +5,6 @@ import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.AnimationState
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateTo
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -283,6 +282,7 @@ fun HeadlessTopmostAppBar(
     contentScrollBehaviour: TopmostAppBarContentScrollBehaviour = TopmostAppBarContentScrollBehaviour.Fixed,
     draggable: Boolean = true,
     snapInDraggableArea: Boolean = true,
+    minHeight : Dp = Dp.Unspecified,
     content: @Composable (paddings: TopmostAppBarPaddingValues, collapsedFraction: Float) -> Unit,
 ) = FreeformTopmostAppBar(
     state = state,
@@ -298,6 +298,7 @@ fun HeadlessTopmostAppBar(
     actions = {},
     headless = true,
     content = content,
+    requestedMinHeight = minHeight
 )
 
 data class TopmostAppBarPaddingValues(
@@ -341,8 +342,10 @@ private fun FreeformTopmostAppBar(
         collapsedFraction: Float,
         contentOffset: Float
     ) -> Unit = { _, _, _ -> },
+    requestedMinHeight: Dp = Dp.Unspecified,
     content: @Composable (paddings: TopmostAppBarPaddingValues, collapsedFraction: Float) -> Unit,
 ) {
+    val ignoreMinHeight = requestedMinHeight != Dp.Unspecified
     val appBarState = state.topBarState
     val actionsRow = @Composable {
         Row(
@@ -405,13 +408,15 @@ private fun FreeformTopmostAppBar(
                         val childPlaceable =
                             measurable.measure(
                                 constraints.copy(
-                                    minHeight = TopmostAppBarDefaults.height.roundToPx() + windowTopInset.roundToPx()
+                                    minHeight =
+                                        if (ignoreMinHeight) requestedMinHeight.roundToPx() else
+                                            TopmostAppBarDefaults.height.roundToPx() + windowTopInset.roundToPx()
                                 )
                             )
                         // update the offset whenever the layout updated
                         appBarState.heightOffsetLimit = min(
                             0f,
-                            (childPlaceable.height.toFloat() - minimumHeight.roundToPx() - windowTopInset.roundToPx()).unaryMinus()
+                            (childPlaceable.height.toFloat() - minimumHeight.roundToPx() - (if (ignoreMinHeight) requestedMinHeight.roundToPx() else windowTopInset.roundToPx())).unaryMinus()
                         )
 
                         val scrolledOffsetValue = appBarState.heightOffset
@@ -437,9 +442,8 @@ private fun FreeformTopmostAppBar(
                         remember {
                             TopmostAppBarPaddingValues(
                                 windowPadding = windowPadding,
-                                topAppbarPadding = PaddingValues(
-                                    top = windowTopInset + TopmostAppBarDefaults.height
-                                )
+                                topAppbarPadding = if (ignoreMinHeight) PaddingValues(top = requestedMinHeight)
+                                else PaddingValues(top = windowTopInset + TopmostAppBarDefaults.height)
                             )
                         },
                         appBarState.collapsedFraction

@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -23,13 +25,25 @@ class FlashcardViewModel @Inject constructor(
 
     val state: StateFlow<FlashcardUiState> =
         flowOf(savedStateHandle.toRoute<FlashcardRoute>().deckId)
-            .flatMapLatest { deckRepository.getCardsForDeck(it) }
+            .flatMapLatest { deckRepository.getDueCardsForDeck(it).take(1) }
             .map { FlashcardUiState.Success(it) }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000),
                 initialValue = FlashcardUiState.Loading
             )
+
+    fun markCardAsGood(card: Card) {
+        viewModelScope.launch {
+            deckRepository.saveReviewResult(card, 4)
+        }
+    }
+
+    fun markCardAsBad(card: Card) {
+        viewModelScope.launch {
+            deckRepository.saveReviewResult(card, 0)
+        }
+    }
 }
 
 sealed interface FlashcardUiState {
