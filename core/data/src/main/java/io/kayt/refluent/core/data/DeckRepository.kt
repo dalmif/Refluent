@@ -6,13 +6,21 @@ import io.kayt.refluent.core.database.AppDatabase
 import io.kayt.refluent.core.database.entity.CardEntity
 import io.kayt.refluent.core.database.entity.DeckEntity
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.seconds
 
 @Singleton
 class DeckRepository @Inject constructor(
@@ -67,8 +75,24 @@ class DeckRepository @Inject constructor(
         }
     }
 
-    fun getDeckById(deckId: Long): Flow<Deck> = deckDataAccess
-        .getDeckById(deckId)
+    class AbortFlowException : Exception()
+    fun getDeckById(deckId: Long): Flow<Deck> = channelFlow {
+        while (currentCoroutineContext().isActive) {
+            try {
+                deckDataAccess.getDeckById(deckId).collectLatest {
+                    send(it)
+                    it.nearestNextReview?.plus(1.seconds.inWholeMilliseconds)?.let {
+                        val nextUpdate = it - System.currentTimeMillis()
+                        if (nextUpdate > 0) {
+                            delay(nextUpdate)
+                            throw AbortFlowException()
+                        }
+                    }
+                }
+            }
+            catch (ex : AbortFlowException){ }
+        }
+    }
         .map {
             it.let {
                 Deck(

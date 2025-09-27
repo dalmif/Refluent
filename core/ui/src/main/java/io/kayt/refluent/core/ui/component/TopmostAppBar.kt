@@ -631,7 +631,6 @@ enum class TopmostAppBarAnimationTimeline {
             ScrolledAfterCollapsed -> {
                 val collapsed by remember {
                     derivedStateOf {
-                        println("mmd here: ${state.contentOffset}")
                         state.contentOffset != 0f
                     }
                 }

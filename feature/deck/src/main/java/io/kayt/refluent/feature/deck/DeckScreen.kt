@@ -1,6 +1,10 @@
 package io.kayt.refluent.feature.deck
 
+import androidx.compose.animation.Animatable
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.EaseOutQuint
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -17,13 +21,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.InlineTextContent
-import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,6 +37,7 @@ import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
@@ -56,9 +63,10 @@ import io.kayt.refluent.core.ui.component.button.PrimaryButton
 import io.kayt.refluent.core.ui.component.button.SecondaryButton
 import io.kayt.refluent.core.ui.component.rememberTopmostAppBarState
 import io.kayt.refluent.core.ui.theme.AppTheme
-import io.kayt.refluent.core.ui.theme.typography.Charis
 import io.kayt.refluent.core.ui.theme.typography.DMSans
 import io.kayt.refluent.core.ui.theme.typography.DMSansVazir
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 @Composable
 fun DeckScreen(
@@ -126,9 +134,44 @@ private fun DeckScreen(
                                 modifier = Modifier.weight(1f),
                                 horizontalAlignment = Alignment.End
                             ) {
+                                val pulseColor: Color = Color.Red
+                                val baseScale = 1f
+                                val pulseScale = 1.12f
+                                val baseColor = AppTheme.colors.textPrimary
+                                val scale = remember { Animatable(1f) }
+                                val color = remember { Animatable(baseColor) }
+                                val lastDeckSize = remember { mutableIntStateOf(state.deck.dueCards) }
+                                LaunchedEffect(state.deck.dueCards) {
+                                    if (lastDeckSize.intValue != state.deck.dueCards) {
+                                        lastDeckSize.intValue = state.deck.dueCards
+                                        coroutineScope {
+                                            launch {
+                                                scale.animateTo(
+                                                    pulseScale,
+                                                    tween(140, easing = FastOutSlowInEasing)
+                                                )
+                                            }
+                                            launch { color.animateTo(pulseColor, tween(140)) }
+                                        }
+                                        coroutineScope {
+                                            launch {
+                                                scale.animateTo(
+                                                    baseScale,
+                                                    tween(180, easing = FastOutSlowInEasing)
+                                                )
+                                            }
+                                            launch { color.animateTo(baseColor, tween(180)) }
+                                        }
+                                    }
+                                }
                                 Text(
                                     text = state.deck.dueCards.toString(),
-                                    style = AppTheme.typography.subhead
+                                    style = AppTheme.typography.subhead,
+                                    color = color.value,
+                                    modifier = Modifier.graphicsLayer {
+                                        scaleX = scale.value
+                                        scaleY = scale.value
+                                    }
                                 )
                                 Text(
                                     text = "due for reviews",
@@ -136,7 +179,10 @@ private fun DeckScreen(
                                 )
                             }
                         }
-                        HeadlessTopmostAppBar(topmostAppBarState, minHeight = 25.dp) { _, collapseFraction ->
+                        HeadlessTopmostAppBar(
+                            topmostAppBarState,
+                            minHeight = 25.dp
+                        ) { _, collapseFraction ->
                             val scale = lerp(1f, 0.9f, EaseOutQuint.transform(collapseFraction))
                             val offset = lerp(0.dp, 40.dp, collapseFraction)
                             Row(
@@ -152,7 +198,10 @@ private fun DeckScreen(
                                     Text("Add card")
                                 }
                                 Spacer(modifier = Modifier.width(6.dp))
-                                PrimaryButton({ onStudyClick() }, modifier = Modifier.weight(1f, true)) {
+                                PrimaryButton(
+                                    { onStudyClick() },
+                                    modifier = Modifier.weight(1f, true)
+                                ) {
                                     Text("Start study")
                                 }
                             }

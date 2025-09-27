@@ -161,9 +161,7 @@ private fun FlashcardScreen(
                             iconTint = Color(0xFFB22525),
                             iconSize = 38.dp,
                             onClick = {
-                                println("mmd here is the card swuiped size: ${state.cards.size} and index: ${swipeableState.currentCardIndex}")
                                 if (state.cards.size > swipeableState.currentCardIndex) {
-                                    println("mmd here DONE: ${state.cards.size} and index: ${swipeableState.currentCardIndex}")
                                     onSwipeLeft(state.cards[swipeableState.currentCardIndex])
                                 }
                                 swipeableState.swipe(SwipeableCardDirection.Left)

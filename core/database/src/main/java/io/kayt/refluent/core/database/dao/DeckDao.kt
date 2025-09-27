@@ -52,14 +52,23 @@ interface DeckDao {
                 AND c.nextReview <= (CAST(strftime('%s','now') AS INTEGER) * 1000) + 1000
                THEN 1 ELSE 0
              END
-           ) AS dueCards
+           ) AS dueCards,
+           (
+             SELECT c2.nextReview
+             FROM cards AS c2
+             WHERE c2.deckOwnerId = d.uid
+               AND c2.nextReview IS NOT NULL
+               AND c2.nextReview >= (CAST(strftime('%s','now') AS INTEGER) * 1000)
+             ORDER BY c2.nextReview ASC
+             LIMIT 1
+           ) AS nearestNextReview
         FROM decks AS d
         LEFT JOIN cards AS c ON c.deckOwnerId = d.uid
         WHERE d.uid = :deckId
         GROUP BY d.uid, d.name, d.color1, d.color2
         ORDER BY d.createdDateTime DESC
         LIMIT 1
-    """)
+""")
     fun getDeckById(deckId: Long): Flow<DeckWithStats>
 
 }
