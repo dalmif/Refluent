@@ -1,9 +1,11 @@
 package io.kayt.refluent.feature.deck
 
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import io.kayt.refluent.core.ui.component.LocalNavAnimatedVisibilityScope
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -14,10 +16,12 @@ fun NavGraphBuilder.deck(
     onStudyClick: (deckId: Long) -> Unit,
 ) {
     composable<DeckRoute> { route ->
-        DeckScreen(
-            onAddCardClick = { onAddCardClick(route.toRoute<DeckRoute>().deckId) },
-            onStudyClick = { onStudyClick(route.toRoute<DeckRoute>().deckId) }
-        )
+        CompositionLocalProvider(LocalNavAnimatedVisibilityScope provides this) {
+            DeckScreen(
+                onAddCardClick = { onAddCardClick(route.toRoute<DeckRoute>().deckId) },
+                onStudyClick = { onStudyClick(route.toRoute<DeckRoute>().deckId) }
+            )
+        }
     }
 }
 

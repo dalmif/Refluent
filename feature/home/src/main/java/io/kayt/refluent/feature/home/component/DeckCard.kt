@@ -1,5 +1,6 @@
 package io.kayt.refluent.feature.home.component
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,75 +26,101 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import io.kayt.core.model.Deck
 import io.kayt.refluent.core.ui.R
+import io.kayt.refluent.core.ui.component.LocalNavAnimatedVisibilityScope
+import io.kayt.refluent.core.ui.component.LocalSharedTransitionScope
 import io.kayt.refluent.core.ui.theme.AppTheme
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun DeckCard(
     deck: Deck,
     onClick: () -> Unit,
     onStudyClick: () -> Unit,
+    deckId: Long,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .clickable(onClick = onClick)
-            .background(
-                Brush.horizontalGradient(
-                    listOf(Color(0xFFFDDCAA), Color(0xFFECDBDA))
+    with(LocalSharedTransitionScope.current) {
+        Column(
+            modifier = modifier
+                .sharedBounds(
+                    rememberSharedContentState(key = "deck_background_$deckId"),
+                    animatedVisibilityScope = LocalNavAnimatedVisibilityScope.current
                 )
-            )
-            .padding(start = 21.dp, end = 16.dp)
-            .padding(top = 38.dp, bottom = 22.dp)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.weight(1f)) {
-                Text(
-                    deck.name.uppercase(),
-                    style = AppTheme.typography.headline1
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(20.dp))
+                .clickable(onClick = onClick)
+                .background(
+                    Brush.horizontalGradient(
+                        listOf(Color(0xFFFDDCAA), Color(0xFFECDBDA))
+                    )
                 )
-            }
-            Column(
-                modifier = Modifier.weight(1f),
-                horizontalAlignment = Alignment.End
-            ) {
-                Text(
-                    text = deck.dueCards.toString(),
-                    style = AppTheme.typography.subhead
-                )
-                Text(
-                    text = "due for reviews",
-                    style = AppTheme.typography.body1
-                )
-            }
-        }
-        Spacer(Modifier.height(10.dp))
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+                .padding(start = 21.dp, end = 16.dp)
+                .padding(top = 38.dp, bottom = 22.dp)
         ) {
-            Text(
-                text = "${deck.totalCards} cards",
-                style = AppTheme.typography.body2
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.weight(1f)) {
+                    Text(
+                        deck.name.uppercase(),
+                        style = AppTheme.typography.headline1,
+                        modifier = Modifier.sharedElement(
+                            rememberSharedContentState(key = "deck_title_$deckId"),
+                            animatedVisibilityScope = LocalNavAnimatedVisibilityScope.current
+                        )
+                    )
+                }
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.End
+                ) {
+                    Text(
+                        text = deck.dueCards.toString(),
+                        style = AppTheme.typography.subhead,
+                        modifier = Modifier.sharedElement(
+                            rememberSharedContentState(key = "deck_due_cards_$deckId"),
+                            animatedVisibilityScope = LocalNavAnimatedVisibilityScope.current
+                        )
+                    )
+                    Text(
+                        text = "due for reviews",
+                        style = AppTheme.typography.body1,
+                        modifier = Modifier.sharedElement(
+                            rememberSharedContentState(key = "deck_due_text_$deckId"),
+                            animatedVisibilityScope = LocalNavAnimatedVisibilityScope.current
+                        )
+                    )
+                }
+            }
+            Spacer(Modifier.height(10.dp))
             Row(
-                Modifier
-                    .clip(CircleShape)
-                    .clickable(onClick = onStudyClick)
-                    .background(Color(0x45F9C959))
-                    .padding(vertical = 7.dp, horizontal = 14.dp)
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "Click to Study",
-                    style = AppTheme.typography.body1
+                    text = "${deck.totalCards} cards",
+                    style = AppTheme.typography.body2,
+                    modifier = Modifier.sharedElement(
+                        rememberSharedContentState(key = "deck_total_cards_$deckId"),
+                        animatedVisibilityScope = LocalNavAnimatedVisibilityScope.current
+                    )
                 )
-                Spacer(Modifier.width(3.dp))
-                Icon(
-                    painterResource(R.drawable.icon_arrow_right),
-                    contentDescription = null
-                )
+                Row(
+                    Modifier
+                        .clip(CircleShape)
+                        .clickable(onClick = onStudyClick)
+                        .background(Color(0x45F9C959))
+                        .padding(vertical = 7.dp, horizontal = 14.dp)
+                ) {
+                    Text(
+                        text = "Click to Study",
+                        style = AppTheme.typography.body1
+                    )
+                    Spacer(Modifier.width(3.dp))
+                    Icon(
+                        painterResource(R.drawable.icon_arrow_right),
+                        contentDescription = null
+                    )
+                }
             }
         }
     }
