@@ -11,10 +11,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -76,6 +77,7 @@ class DeckRepository @Inject constructor(
     }
 
     class AbortFlowException : Exception()
+
     fun getDeckById(deckId: Long): Flow<Deck> = channelFlow {
         while (currentCoroutineContext().isActive) {
             try {
@@ -85,12 +87,12 @@ class DeckRepository @Inject constructor(
                         val nextUpdate = it - System.currentTimeMillis()
                         if (nextUpdate > 0) {
                             delay(nextUpdate)
-                            throw AbortFlowException()
                         }
+                        throw AbortFlowException()
                     }
                 }
+            } catch (ex: AbortFlowException) {
             }
-            catch (ex : AbortFlowException){ }
         }
     }
         .map {
@@ -106,20 +108,40 @@ class DeckRepository @Inject constructor(
         }
         .flowOn(Dispatchers.IO)
 
-    fun getAllDeck(): Flow<List<Deck>> = deckDataAccess
-        .getDeckWithCardCounts()
-        .map { list ->
-            list.map {
-                Deck(
-                    id = it.uid,
-                    name = it.name,
-                    colors = Pair(it.color1, it.color2),
-                    totalCards = it.totalCards,
-                    dueCards = it.dueCards
-                )
+    fun getAllDeck(): Flow<List<Deck>> = channelFlow {
+        send(Unit)
+        while(currentCoroutineContext().isActive) {
+            try {
+                deckDataAccess.getTheNearestDueCard()
+                    .filterNotNull()
+                    .map { it.nextReview }
+                    .distinctUntilChanged()
+                    .collectLatest {
+                        val nextUpdate = (it + 1_000) - System.currentTimeMillis()
+                        if (nextUpdate > 0) {
+                            delay(nextUpdate)
+                        }
+                        send(Unit)
+                        // When we reach to the nearest one, we need to re-execute the query to get the
+                        // next nearest one, as the current one is past now.
+                        throw AbortFlowException()
+                    }
             }
+            catch (ex : AbortFlowException) {}
         }
-        .flowOn(Dispatchers.IO)
+    }.flatMapLatest {
+        deckDataAccess.getDeckWithCardCounts()
+    }.map { list ->
+        list.map {
+            Deck(
+                id = it.uid,
+                name = it.name,
+                colors = Pair(it.color1, it.color2),
+                totalCards = it.totalCards,
+                dueCards = it.dueCards
+            )
+        }
+    }.flowOn(Dispatchers.IO)
 
     fun getCardsForDeck(deckId: Long): Flow<List<Card>> = deckDataAccess
         .getCardsForDeck(deckId)

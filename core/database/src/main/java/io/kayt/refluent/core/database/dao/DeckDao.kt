@@ -43,7 +43,19 @@ interface DeckDao {
     )
     fun getDeckWithCardCounts(): Flow<List<DeckWithStats>>
 
-    @Query("""
+
+    @Query(
+        """
+        SELECT * FROM cards
+        WHERE nextReview > CAST(strftime('%s','now') AS INTEGER) * 1000
+        ORDER BY nextReview ASC
+        LIMIT 1
+       """
+    )
+    fun getTheNearestDueCard(): Flow<CardEntity?>
+
+    @Query(
+        """
         SELECT d.uid, d.name, d.color1, d.color2,
            COUNT(c.uid) AS totalCards,
            SUM(
@@ -58,7 +70,7 @@ interface DeckDao {
              FROM cards AS c2
              WHERE c2.deckOwnerId = d.uid
                AND c2.nextReview IS NOT NULL
-               AND c2.nextReview >= (CAST(strftime('%s','now') AS INTEGER) * 1000)
+               AND c2.nextReview > (CAST(strftime('%s','now') AS INTEGER) * 1000)
              ORDER BY c2.nextReview ASC
              LIMIT 1
            ) AS nearestNextReview
@@ -68,7 +80,8 @@ interface DeckDao {
         GROUP BY d.uid, d.name, d.color1, d.color2
         ORDER BY d.createdDateTime DESC
         LIMIT 1
-""")
+"""
+    )
     fun getDeckById(deckId: Long): Flow<DeckWithStats>
 
 }
