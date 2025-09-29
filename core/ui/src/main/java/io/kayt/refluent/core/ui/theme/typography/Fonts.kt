@@ -14,6 +14,21 @@ import android.graphics.fonts.Font as AndroidFont
 
 var DMSansVazir: FontFamily? = null
 
+val LifeSaver = FontFamily(
+    Font(
+        resId = R.font.life_savers_regular,
+        weight = FontWeight.W100
+    ),
+    Font(
+        resId = R.font.life_savers_bold,
+        weight = FontWeight.W600
+    ),
+    Font(
+        resId = R.font.life_savers_extra_bold,
+        weight = FontWeight.W800
+    )
+)
+
 @OptIn(ExperimentalTextApi::class)
 val DMSans = FontFamily(
     Font(
