@@ -4,8 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.kayt.refluent.core.data.DeckRepository
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -15,32 +18,35 @@ class AddDeckViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AddDeckUiState())
+    private val _event = Channel<AddDeckEvent>(64)
+    val event: Flow<AddDeckEvent> = _event.receiveAsFlow()
     val state = _state.asStateFlow()
 
     fun addNewDeck() {
         viewModelScope.launch {
             val name = state.value.name
-            val color1 = state.value.color1
-            val color2 = state.value.color2
-            deckRepository.addNewDeck(name, Pair(color1, color2))
+            val color = state.value.color
+            deckRepository.addNewDeck(name, Pair(color, COLOR_FIXED))
+            _event.trySend(AddDeckEvent.DeckAddedSuccessfully)
         }
     }
 
     fun onNameChanges(name: String) {
-        _state.value = _state.value.copy(name = name)
+        _state.value =
+            _state.value.copy(name = name.substring(0..(name.length - 1).coerceAtMost(30)))
     }
 
-    fun onColor1Changes(color1: Int) {
-        _state.value = _state.value.copy(color1 = color1)
-    }
-
-    fun onColor2Changes(color2: Int) {
-        _state.value = _state.value.copy(color2 = color2)
+    fun onColorChanges(color: Int) {
+        println("mmd color came here : $color")
+        _state.value = _state.value.copy(color = color)
     }
 }
 
 data class AddDeckUiState(
     val name: String = "",
-    val color1: Int = 0,
-    val color2: Int = 0
+    val color: Int = 0
 )
+
+sealed interface AddDeckEvent {
+    data object DeckAddedSuccessfully : AddDeckEvent
+}

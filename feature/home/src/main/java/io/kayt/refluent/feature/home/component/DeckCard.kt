@@ -51,7 +51,7 @@ fun DeckCard(
                 .clickable(onClick = onClick)
                 .background(
                     Brush.horizontalGradient(
-                        listOf(Color(0xFFFDDCAA), Color(0xFFECDBDA))
+                        listOf(Color(deck.colors.first), Color(deck.colors.second))
                     )
                 )
                 .padding(start = 21.dp, end = 16.dp)

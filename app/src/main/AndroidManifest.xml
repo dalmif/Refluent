@@ -11,6 +11,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:name=".App"
+        android:windowSoftInputMode="adjustResize"
         android:theme="@style/Theme.Refluent"
         tools:targetApi="31">
         <activity

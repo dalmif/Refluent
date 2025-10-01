@@ -1,12 +1,9 @@
 package io.kayt.refluent
 
-import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.compositionLocalOf
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import io.kayt.refluent.core.ui.component.LocalSharedTransitionScope
@@ -16,10 +13,12 @@ import io.kayt.refluent.feature.deck.deck
 import io.kayt.refluent.feature.deck.flashcard.flashCard
 import io.kayt.refluent.feature.deck.flashcard.navigateToFlashcard
 import io.kayt.refluent.feature.deck.navigateToDeck
-import io.kayt.refluent.feature.home.HomeRoute
 import io.kayt.refluent.feature.home.adddeck.addDeck
 import io.kayt.refluent.feature.home.adddeck.navigateToAddDeck
 import io.kayt.refluent.feature.home.home
+import io.kayt.refluent.feature.home.navigateToHome
+import io.kayt.refluent.feature.welcome.WelcomeRoute
+import io.kayt.refluent.feature.welcome.welcome
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -32,7 +31,7 @@ fun MainUi() {
         ) {
             NavHost(
                 navController = navController,
-                startDestination = HomeRoute
+                startDestination = WelcomeRoute
             ) {
                 home(
                     onAddDeckClick = {
@@ -53,6 +52,7 @@ fun MainUi() {
                 flashCard()
                 addCard(navController)
                 addDeck(navController)
+                welcome(onNextButtonClick = { navController.navigateToHome() })
             }
         }
     }

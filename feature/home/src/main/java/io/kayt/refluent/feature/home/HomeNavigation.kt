@@ -1,6 +1,7 @@
 package io.kayt.refluent.feature.home
 
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import io.kayt.refluent.core.ui.component.LocalNavAnimatedVisibilityScope
@@ -21,4 +22,8 @@ fun NavGraphBuilder.home(
             )
         }
     }
+}
+
+fun NavController.navigateToHome() {
+    navigate(HomeRoute)
 }

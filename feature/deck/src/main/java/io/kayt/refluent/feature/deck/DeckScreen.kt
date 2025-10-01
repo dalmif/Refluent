@@ -119,7 +119,7 @@ private fun DeckScreen(
                             .fillMaxHeight(0.45f)
                             .background(
                                 Brush.horizontalGradient(
-                                    listOf(Color(0xFFFDDCAA), Color(0xFFECDBDA))
+                                    listOf(Color(state.deck.colors.first), Color(state.deck.colors.second))
                                 )
                             )
                     )
