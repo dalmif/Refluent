@@ -31,6 +31,9 @@ interface DeckDao {
     
     @Query("DELETE FROM decks WHERE uid = :deckId")
     suspend fun deleteDeckById(deckId: Long)
+    
+    @Query("DELETE FROM cards WHERE deckOwnerId = :deckId")
+    suspend fun deleteCardsByDeckId(deckId: Long)
 
     @Insert
     suspend fun insertCard(card: CardEntity)

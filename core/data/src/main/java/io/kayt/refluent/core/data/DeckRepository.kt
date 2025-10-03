@@ -71,6 +71,9 @@ class DeckRepository @Inject constructor(
 
     suspend fun removeDeck(id: Long) {
         withContext(Dispatchers.IO) {
+            // Delete all cards associated with this deck first
+            deckDataAccess.deleteCardsByDeckId(id)
+            // Then delete the deck
             deckDataAccess.deleteDeckById(id)
         }
     }
