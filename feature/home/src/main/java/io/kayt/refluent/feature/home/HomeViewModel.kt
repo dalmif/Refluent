@@ -34,11 +34,13 @@ class HomeViewModel @Inject constructor(
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = HomeUiState.Empty(name = "")
+                initialValue = HomeUiState.Loading
             )
 }
 
 sealed interface HomeUiState {
-    data class Empty(val name : String) : HomeUiState
+
+    data class Empty(val name: String) : HomeUiState
+    data object Loading : HomeUiState
     data class Success(val decks: List<Deck>, val name: String) : HomeUiState
 }

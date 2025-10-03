@@ -45,4 +45,5 @@ dependencies {
     implementation(project(":feature:home"))
     implementation(project(":feature:deck"))
     implementation(project(":core:database"))
+    implementation(project(":core:data"))
 }

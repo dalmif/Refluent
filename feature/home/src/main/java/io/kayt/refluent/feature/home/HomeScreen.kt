@@ -1,6 +1,5 @@
 package io.kayt.refluent.feature.home
 
-import android.R.attr.name
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.core.EaseOutExpo
@@ -147,10 +146,11 @@ private fun HomeScreen(
                             val name = when (state) {
                                 is HomeUiState.Empty -> state.name
                                 is HomeUiState.Success -> state.name
+                                else -> ""
                             }
 
                             Text(
-                                "${getGreeting()}${if(name.isBlank()) "!" else ","}",
+                                "${getGreeting()}${if (name.isBlank()) "!" else ","}",
                                 style = AppTheme.typography.greeting1
                             )
                             if (name.isNotBlank()) {
@@ -175,91 +175,96 @@ private fun HomeScreen(
                             targetState = state,
                             modifier = Modifier.fillMaxSize(),
                             contentKey = { it::class }) { state ->
-                            if (state is HomeUiState.Success) {
-                                val lazyListState = rememberLazyListState()
-                                LazyColumn(
-                                    state = lazyListState,
-                                    contentPadding = PaddingValues(
-                                        top = 40.dp,
-                                        bottom = innerPadding.calculateBottomPadding()
-                                    )
-                                ) {
-                                    val decks = state.decks
-                                    items(decks.size) { index ->
-                                        DeckCard(
-                                            deck = decks[index],
-                                            modifier = Modifier.padding(bottom = 10.dp),
-                                            onClick = { onDeckClick(decks[index].id) },
-                                            onStudyClick = {},
-                                            deckId = decks[index].id
+                            when (state) {
+                                is HomeUiState.Success -> {
+                                    val lazyListState = rememberLazyListState()
+                                    LazyColumn(
+                                        state = lazyListState,
+                                        contentPadding = PaddingValues(
+                                            top = 40.dp,
+                                            bottom = innerPadding.calculateBottomPadding()
                                         )
-                                    }
-                                    item {
-                                        Box(
-                                            Modifier.fillMaxWidth(),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            TextButton(onAddDeckClick) {
-                                                Text(
-                                                    text = "Create new deck",
-                                                    style = AppTheme.typography.body1.copy(
-                                                        fontWeight = FontWeight.Medium
-                                                    ),
-                                                    color = Color(0xFF222222)
-                                                )
+                                    ) {
+                                        val decks = state.decks
+                                        items(decks.size) { index ->
+                                            DeckCard(
+                                                deck = decks[index],
+                                                modifier = Modifier.padding(bottom = 10.dp),
+                                                onClick = { onDeckClick(decks[index].id) },
+                                                onStudyClick = {},
+                                                deckId = decks[index].id
+                                            )
+                                        }
+                                        item {
+                                            Box(
+                                                Modifier.fillMaxWidth(),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                TextButton(onAddDeckClick) {
+                                                    Text(
+                                                        text = "Create new deck",
+                                                        style = AppTheme.typography.body1.copy(
+                                                            fontWeight = FontWeight.Medium
+                                                        ),
+                                                        color = Color(0xFF222222)
+                                                    )
+                                                }
                                             }
                                         }
                                     }
                                 }
-                            } else {
-                                Box {
-                                    Column(
-                                        modifier = Modifier
-                                            .align(Alignment.Center)
-                                            .padding(
-                                                PaddingValues(bottom = innerPadding.calculateBottomPadding())
-                                            ),
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        Spacer(Modifier.weight(1f))
-                                        Box(modifier = Modifier.offset(x = 30.dp, y = 0.dp)) {
-                                            Spacer(
-                                                Modifier
-                                                    .offset(x = -(193 / 2).dp, y = 0.dp)
-                                                    .size(193.dp)
-                                                    .background(Color(0xFFFFF9D4), CircleShape)
-                                            )
-                                            Image(
-                                                painter = painterResource(R.drawable.first_ever_brainy),
-                                                contentDescription = null,
-                                                modifier = Modifier.size(137.dp, 185.dp)
-                                            )
-                                        }
-                                        Box(
-                                            modifier = Modifier.weight(1.4f),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Text(
-                                                "No Deck Found",
-                                                fontFamily = LifeSaver,
-                                                fontSize = 32.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                lineHeight = 55.sp,
-                                                modifier = Modifier.padding(top = 30.dp)
-                                            )
-                                        }
-                                        PrimaryButton(
-                                            onAddDeckClick,
+
+                                is HomeUiState.Empty -> {
+                                    Box {
+                                        Column(
                                             modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(horizontal = 20.dp)
-                                                .height(71.dp)
+                                                .align(Alignment.Center)
+                                                .padding(
+                                                    PaddingValues(bottom = innerPadding.calculateBottomPadding())
+                                                ),
+                                            horizontalAlignment = Alignment.CenterHorizontally
                                         ) {
-                                            Text("Create new deck")
+                                            Spacer(Modifier.weight(1f))
+                                            Box(modifier = Modifier.offset(x = 30.dp, y = 0.dp)) {
+                                                Spacer(
+                                                    Modifier
+                                                        .offset(x = -(193 / 2).dp, y = 0.dp)
+                                                        .size(193.dp)
+                                                        .background(Color(0xFFFFF9D4), CircleShape)
+                                                )
+                                                Image(
+                                                    painter = painterResource(R.drawable.first_ever_brainy),
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(137.dp, 185.dp)
+                                                )
+                                            }
+                                            Box(
+                                                modifier = Modifier.weight(1.4f),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    "No Deck Found",
+                                                    fontFamily = LifeSaver,
+                                                    fontSize = 32.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    lineHeight = 55.sp,
+                                                    modifier = Modifier.padding(top = 30.dp)
+                                                )
+                                            }
+                                            PrimaryButton(
+                                                onAddDeckClick,
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(horizontal = 20.dp)
+                                                    .height(71.dp)
+                                            ) {
+                                                Text("Create new deck")
+                                            }
+                                            Spacer(Modifier.height(50.dp))
                                         }
-                                        Spacer(Modifier.height(50.dp))
                                     }
                                 }
+                                HomeUiState.Loading -> {}
                             }
                         }
                     }
