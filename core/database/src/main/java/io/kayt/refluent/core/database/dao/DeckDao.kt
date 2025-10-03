@@ -24,7 +24,7 @@ interface DeckDao {
     suspend fun newDeck(deck: DeckEntity): Long
 
     @Delete
-    suspend fun delete(user: DeckEntity)
+    suspend fun delete(deck: DeckEntity)
 
     @Insert
     suspend fun insertCard(card: CardEntity)
@@ -41,7 +41,7 @@ interface DeckDao {
     @Query(
         "SELECT d.uid, d.name, d.color1, d.color2, COUNT(c.uid) AS totalCards, " +
                 "SUM(CASE WHEN c.nextReview IS NOT NULL AND c.nextReview <= (CAST(strftime('%s','now') AS INTEGER) * 1000) + 1000 THEN 1 ELSE 0 END) AS dueCards " +
-                "FROM decks AS d LEFT JOIN cards AS c ON c.deckOwnerId = d.uid GROUP BY d.uid, d.name ORDER BY d.createdDateTime DESC;"
+                "FROM decks AS d LEFT JOIN cards AS c ON c.deckOwnerId = d.uid GROUP BY d.uid, d.name ORDER BY d.createdDateTime ASC;"
     )
     fun getDeckWithCardCounts(): Flow<List<DeckWithStats>>
 

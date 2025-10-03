@@ -11,14 +11,16 @@ import kotlinx.serialization.Serializable
 data object HomeRoute
 
 fun NavGraphBuilder.home(
-    onAddDeckClick: () -> Unit,
-    onDeckClick: (Long) -> Unit
+    onAddDeckClick: (deckCount : Int) -> Unit,
+    onDeckClick: (Long) -> Unit,
+    onDeckEditClick: (Long) -> Unit
 ) {
     composable<HomeRoute> {
         CompositionLocalProvider(LocalNavAnimatedVisibilityScope provides this) {
             HomeScreen(
                 onAddDeckClick = onAddDeckClick,
-                onDeckClick = onDeckClick
+                onDeckClick = onDeckClick,
+                onDeckEditClick = onDeckEditClick
             )
         }
     }

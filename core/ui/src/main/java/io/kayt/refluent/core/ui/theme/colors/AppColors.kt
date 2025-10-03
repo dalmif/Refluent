@@ -35,6 +35,7 @@ data class AppColors(
     val separator: Color,
     val validation: Color,
     val error: Color,
+    val onError: Color,
     val backgroundLiveShow: Color,
     val livePrimary: Color
 )

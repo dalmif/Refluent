@@ -14,17 +14,18 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.dialog
+import androidx.navigation.toRoute
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 
 @Serializable
-data object AddDeckRoute
+data class AddDeckRoute(val editingDeckId: Long?, val howManyDeckExist: Int)
 
 @OptIn(ExperimentalMaterial3Api::class)
 fun NavGraphBuilder.addDeck(navController: NavController) {
     dialog<AddDeckRoute> {
-
+        val route = it.toRoute<AddDeckRoute>()
         val modalState = rememberModalBottomSheetState(
             skipPartiallyExpanded = true
         ) { it != SheetValue.Hidden }
@@ -43,6 +44,8 @@ fun NavGraphBuilder.addDeck(navController: NavController) {
             val scope = rememberCoroutineScope()
             AddDeckModal(
                 modifier = Modifier.padding(bottom = 10.dp),
+                index = route.howManyDeckExist,
+                isEditing = route.editingDeckId != null,
                 onBackClick = {
                     scope.launch {
                         modalState.hide()
@@ -53,6 +56,15 @@ fun NavGraphBuilder.addDeck(navController: NavController) {
     }
 }
 
-fun NavController.navigateToAddDeck() {
-    navigate(AddDeckRoute)
+fun NavController.navigateToAddDeck(deckCount: Int = 0) {
+    navigate(AddDeckRoute(editingDeckId = null, howManyDeckExist = deckCount))
+}
+
+fun NavController.navigateToEditDeck(deckId: Long) {
+    navigate(
+        AddDeckRoute(
+            editingDeckId = deckId,
+            howManyDeckExist = 0
+        )
+    )
 }

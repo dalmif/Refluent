@@ -16,6 +16,7 @@ import io.kayt.refluent.feature.deck.navigateToDeck
 import io.kayt.refluent.feature.home.HomeRoute
 import io.kayt.refluent.feature.home.adddeck.addDeck
 import io.kayt.refluent.feature.home.adddeck.navigateToAddDeck
+import io.kayt.refluent.feature.home.adddeck.navigateToEditDeck
 import io.kayt.refluent.feature.home.home
 import io.kayt.refluent.feature.home.navigateToHome
 import io.kayt.refluent.feature.welcome.WelcomeRoute
@@ -37,10 +38,13 @@ fun MainUi(
             ) {
                 home(
                     onAddDeckClick = {
-                        navController.navigateToAddDeck()
+                        navController.navigateToAddDeck(it)
                     },
                     onDeckClick = {
                         navController.navigateToDeck(it)
+                    },
+                    onDeckEditClick = {
+                        navController.navigateToEditDeck(it)
                     }
                 )
                 deck(

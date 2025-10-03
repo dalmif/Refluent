@@ -47,6 +47,7 @@ internal val AppThemeLightColors = AppColors(
     separator = Grey2,
     validation = Green,
     error = Red,
+    onError = DarkRed,
     backgroundLiveShow = LightOrange,
     livePrimary = Red2,
     ctaLiveShow = Orange

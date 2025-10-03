@@ -72,8 +72,9 @@ import java.time.LocalTime
 
 @Composable
 internal fun HomeScreen(
-    onAddDeckClick: () -> Unit,
+    onAddDeckClick: (deckCount : Int) -> Unit,
     onDeckClick: (Long) -> Unit,
+    onDeckEditClick: (Long) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -82,8 +83,12 @@ internal fun HomeScreen(
     HomeScreen(
         state = state,
         query = query,
-        onAddDeckClick = onAddDeckClick,
+        onAddDeckClick = {
+            val deckCount = ((state as? HomeUiState.Success)?.decks?.size) ?: 0
+            onAddDeckClick(deckCount)
+        },
         onDeckClick = onDeckClick,
+        onDeckEditClick = onDeckEditClick,
         onQueryChange = viewModel::onQueryChange,
         searchResult = searchResult
     )
@@ -96,6 +101,7 @@ private fun HomeScreen(
     query: String,
     searchResult: SearchResult,
     onAddDeckClick: () -> Unit,
+    onDeckEditClick: (Long) -> Unit,
     onDeckClick: (Long) -> Unit,
     onQueryChange: (String) -> Unit,
 ) {
@@ -218,7 +224,7 @@ private fun HomeScreen(
                                                     onClick = { onDeckClick(decks[index].id) },
                                                     onStudyClick = {},
                                                     onLongPress = {
-                                                        onAddDeckClick()
+                                                        onDeckEditClick(decks[index].id)
                                                     },
                                                     deckId = decks[index].id
                                                 )

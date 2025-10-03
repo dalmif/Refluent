@@ -3,7 +3,6 @@ package io.kayt.refluent.feature.home.adddeck
 import android.annotation.SuppressLint
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -37,6 +36,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
@@ -57,11 +57,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.kayt.refluent.core.ui.R
+import io.kayt.refluent.core.ui.component.DeleteAlertDialog
+import io.kayt.refluent.core.ui.component.button.DeleteButton
 import io.kayt.refluent.core.ui.component.button.PrimaryButton
 import io.kayt.refluent.core.ui.theme.AppTheme
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import kotlin.math.floor
 
@@ -69,23 +70,28 @@ internal const val COLOR_FIXED: Int = 0xFFEFE3B1.toInt()
 
 @Composable
 fun AddDeckModal(
+    isEditing: Boolean,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
+    index: Int = 0,
     viewModel: AddDeckViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) {
         viewModel.event.collectLatest {
             when (it) {
+                AddDeckEvent.DeckDeletedSuccessfully,
                 AddDeckEvent.DeckAddedSuccessfully -> onBackClick()
             }
         }
     }
     AddDeckModal(
         state = state,
+        isEditing = isEditing,
+        index = index,
         onNameChanges = viewModel::onNameChanges,
-        onColorChanges = viewModel::onColorChanges,
         onAddClick = viewModel::addNewDeck,
+        onDeleteClick = viewModel::delete,
         onBackClick = onBackClick,
         modifier = modifier
     )
@@ -95,20 +101,20 @@ fun AddDeckModal(
 @Composable
 private fun AddDeckModal(
     state: AddDeckUiState,
+    isEditing: Boolean,
+    index: Int,
+    onDeleteClick: () -> Unit,
     onNameChanges: (String) -> Unit,
-    onColorChanges: (Int) -> Unit,
     onAddClick: () -> Unit,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val fraction = remember { mutableFloatStateOf(0.1f) }
-    val currentOnColorChanges by rememberUpdatedState(onColorChanges)
+    val fraction = remember { mutableFloatStateOf(((index % 10f) / 10).coerceAtMost(1f)) }
+    val currentState by rememberUpdatedState(state)
     LaunchedEffect(Unit) {
-        snapshotFlow { fraction.floatValue }
-            .debounce(500)
-            .collectLatest {
-                currentOnColorChanges(steppedRainbowColor(it).toArgb())
-            }
+        snapshotFlow { fraction.floatValue }.collectLatest {
+            currentState.color = steppedRainbowColor(it).toArgb()
+        }
     }
     Column(
         modifier = modifier
@@ -117,7 +123,7 @@ private fun AddDeckModal(
             .background(
                 brush = Brush.horizontalGradient(
                     colors = listOf(
-                        steppedRainbowColor(fraction.floatValue),
+                        Color(state.color),
                         Color(COLOR_FIXED)
                     )
                 )
@@ -193,25 +199,55 @@ private fun AddDeckModal(
                         .verticalScroll(scrollState),
                     verticalArrangement = Arrangement.Bottom
                 ) {
-                    Text(
-                        "A deck is a collection of flashcards grouped together on a specific topic. " +
-                                "Think of it like a folder for your study cards. \n",
-                        style = AppTheme.typography.body2,
-                        color = Color(0xFF929292),
-                        modifier = Modifier
-                            .padding(horizontal = 23.dp)
-                            .padding(top = 23.dp)
-                    )
+                    if (!isEditing) {
+                        Text(
+                            "A deck is a collection of flashcards grouped together on a specific topic. " +
+                                    "Think of it like a folder for your study cards. \n",
+                            style = AppTheme.typography.body2,
+                            color = Color(0xFF929292),
+                            modifier = Modifier
+                                .padding(horizontal = 23.dp)
+                                .padding(top = 23.dp)
+                        )
+                    } else {
+                        var deleteConfirmationDialogVisible by remember { mutableStateOf(false) }
+                        DeleteButton(
+                            {
+                                deleteConfirmationDialogVisible = true
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 15.dp)
+                                .padding(bottom = 11.dp)
+                                .padding(horizontal = 23.dp)
+                        ) {
+                            Text("Delete Deck")
+                        }
+                        if (deleteConfirmationDialogVisible) {
+                            DeleteAlertDialog(
+                                onDeleteClick = {
+                                    deleteConfirmationDialogVisible = false
+                                    onDeleteClick()
+                                },
+                                onDismissRequest = { deleteConfirmationDialogVisible = false }
+                            )
+                        }
+                    }
                     val scope = rememberCoroutineScope()
                     PrimaryButton(
                         onClick = {
                             if (state.name.isNotBlank()) {
                                 onAddClick()
-                            }
-                            else {
+                            } else {
                                 scope.launch {
-                                    placeholderAnimatable.animateTo(Color.Red, tween(140, easing = FastOutSlowInEasing))
-                                    placeholderAnimatable.animateTo(placeholderBaseColor, tween(140, easing = FastOutSlowInEasing))
+                                    placeholderAnimatable.animateTo(
+                                        Color.Red,
+                                        tween(140, easing = FastOutSlowInEasing)
+                                    )
+                                    placeholderAnimatable.animateTo(
+                                        placeholderBaseColor,
+                                        tween(140, easing = FastOutSlowInEasing)
+                                    )
                                 }
                             }
                         },
@@ -221,7 +257,12 @@ private fun AddDeckModal(
                             .padding(bottom = 23.dp)
                             .padding(horizontal = 23.dp)
                     ) {
-                        Text("Create Deck")
+                        Text(
+                            if (isEditing)
+                                "Save Deck"
+                            else
+                                "Create Deck"
+                        )
                     }
                     LaunchedEffect(WindowInsets.isImeVisible) {
                         scrollState.animateScrollBy(1000f)
@@ -364,5 +405,5 @@ fun steppedRainbowColor(
 @Preview
 @Composable
 private fun AddDeckModalPreview() {
-    AddDeckModal({})
+    AddDeckModal(isEditing = false, {})
 }

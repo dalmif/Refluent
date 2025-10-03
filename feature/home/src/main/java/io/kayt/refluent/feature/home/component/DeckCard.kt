@@ -100,7 +100,7 @@ fun DeckCard(
                     interactionSource = interactionSource,
                     indication = ripple(),
                     onClick = onClick,
-                    onLongClick = onLongPress
+                    onLongClick = {}
                 )
                 .padding(start = 21.dp, end = 16.dp)
                 .padding(top = 38.dp, bottom = 22.dp)
