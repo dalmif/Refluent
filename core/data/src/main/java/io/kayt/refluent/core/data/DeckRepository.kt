@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
@@ -122,6 +123,36 @@ class DeckRepository @Inject constructor(
                     tags = ""
                 )
             )
+        }
+    }
+
+    suspend fun updateCard(
+        cardId: Long,
+        frontSide: String,
+        backSide: String,
+        comment: String,
+        phonetic: String
+    ) {
+        withContext(Dispatchers.IO) {
+            // First get the existing card to preserve SRS fields
+            val existingCard = deckDataAccess.getCardById(cardId)
+            
+            if (existingCard != null) {
+                deckDataAccess.updateCard(
+                    existingCard.copy(
+                        frontSide = frontSide,
+                        backSide = backSide,
+                        comment = comment,
+                        phonetic = phonetic
+                    )
+                )
+            }
+        }
+    }
+
+    suspend fun deleteCard(cardId: Long) {
+        withContext(Dispatchers.IO) {
+            deckDataAccess.deleteCardById(cardId)
         }
     }
 
