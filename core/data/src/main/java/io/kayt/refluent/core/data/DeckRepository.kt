@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
@@ -58,9 +57,10 @@ class DeckRepository @Inject constructor(
 
     suspend fun updateDeck(id: Long, name: String, colors: Pair<Int, Int>) {
         withContext(Dispatchers.IO) {
+            // First get the existing card to preserve SRS fields
+            val existingCard = deckDataAccess.readDeckById(id)
             deckDataAccess.updateDeck(
-                DeckEntity(
-                    uid = id,
+                existingCard.copy(
                     name = name,
                     color1 = colors.first,
                     color2 = colors.second
@@ -79,7 +79,7 @@ class DeckRepository @Inject constructor(
     }
 
     suspend fun searchCardGlobally(query: String): List<SearchResultCard> {
-       return withContext(Dispatchers.IO) {
+        return withContext(Dispatchers.IO) {
             deckDataAccess.searchCardsWithDeck(query).map {
                 SearchResultCard(
                     card = it.card.let {
@@ -139,7 +139,7 @@ class DeckRepository @Inject constructor(
         withContext(Dispatchers.IO) {
             // First get the existing card to preserve SRS fields
             val existingCard = deckDataAccess.getCardById(cardId)
-            
+
             if (existingCard != null) {
                 deckDataAccess.updateCard(
                     existingCard.copy(

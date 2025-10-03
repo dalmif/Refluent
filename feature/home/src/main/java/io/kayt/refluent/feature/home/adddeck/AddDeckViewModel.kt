@@ -38,7 +38,11 @@ class AddDeckViewModel @Inject constructor(
         viewModelScope.launch {
             val name = state.value.name
             val color = state.value.color
-            deckRepository.addNewDeck(name, Pair(color, COLOR_FIXED))
+            if (!isEditMode) {
+                deckRepository.addNewDeck(name, Pair(color, COLOR_FIXED))
+            } else {
+                deckRepository.updateDeck(editingDeckId!!, name, Pair(color, COLOR_FIXED))
+            }
             _event.trySend(AddDeckEvent.DeckAddedSuccessfully)
         }
     }
@@ -55,7 +59,7 @@ class AddDeckViewModel @Inject constructor(
 
     fun delete() {
         viewModelScope.launch {
-//            deckRepository.
+            deckRepository.removeDeck(editingDeckId!!)
             _event.trySend(AddDeckEvent.DeckDeletedSuccessfully)
         }
     }

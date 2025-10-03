@@ -18,7 +18,7 @@ interface DeckDao {
     suspend fun getAll(): List<DeckEntity>
 
     @Query("SELECT * FROM decks WHERE uid = :deckId")
-    suspend fun findByName(deckId: Int): DeckEntity
+    suspend fun readDeckById(deckId: Long): DeckEntity
 
     @Insert
     suspend fun newDeck(deck: DeckEntity): Long
