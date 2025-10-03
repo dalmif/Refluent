@@ -23,8 +23,14 @@ interface DeckDao {
     @Insert
     suspend fun newDeck(deck: DeckEntity): Long
 
+    @Update
+    suspend fun updateDeck(deck: DeckEntity)
+
     @Delete
     suspend fun delete(deck: DeckEntity)
+    
+    @Query("DELETE FROM decks WHERE uid = :deckId")
+    suspend fun deleteDeckById(deckId: Long)
 
     @Insert
     suspend fun insertCard(card: CardEntity)

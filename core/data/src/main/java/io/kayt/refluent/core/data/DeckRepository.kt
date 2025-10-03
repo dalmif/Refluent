@@ -55,6 +55,25 @@ class DeckRepository @Inject constructor(
         }
     }
 
+    suspend fun updateDeck(id: Long, name: String, colors: Pair<Int, Int>) {
+        withContext(Dispatchers.IO) {
+            deckDataAccess.updateDeck(
+                DeckEntity(
+                    uid = id,
+                    name = name,
+                    color1 = colors.first,
+                    color2 = colors.second
+                )
+            )
+        }
+    }
+
+    suspend fun removeDeck(id: Long) {
+        withContext(Dispatchers.IO) {
+            deckDataAccess.deleteDeckById(id)
+        }
+    }
+
     suspend fun searchCardGlobally(query: String): List<SearchResultCard> {
        return withContext(Dispatchers.IO) {
             deckDataAccess.searchCardsWithDeck(query).map {
