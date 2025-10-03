@@ -11,20 +11,25 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material3.HorizontalDivider
@@ -73,6 +78,7 @@ import io.kayt.refluent.core.ui.component.rememberTopmostAppBarState
 import io.kayt.refluent.core.ui.theme.AppTheme
 import io.kayt.refluent.core.ui.theme.typography.DMSans
 import io.kayt.refluent.core.ui.theme.typography.DMSansVazir
+import io.kayt.refluent.core.ui.theme.typography.LifeSaver
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
@@ -119,7 +125,10 @@ private fun DeckScreen(
                             .fillMaxHeight(0.45f)
                             .background(
                                 Brush.horizontalGradient(
-                                    listOf(Color(state.deck.colors.first), Color(state.deck.colors.second))
+                                    listOf(
+                                        Color(state.deck.colors.first),
+                                        Color(state.deck.colors.second)
+                                    )
                                 )
                             )
                     )
@@ -227,7 +236,15 @@ private fun DeckScreen(
                                     .applyIf(true) {
                                         LocalNavAnimatedVisibilityScope.current.run {
                                             this@applyIf.animateEnterExit(
-                                                enter = slideInVertically { it * 3 } + fadeIn(tween(700, delayMillis = 100)) + scaleIn(tween(300, delayMillis = 100), initialScale = 0.4f),
+                                                enter = slideInVertically { it * 3 } + fadeIn(
+                                                    tween(
+                                                        700,
+                                                        delayMillis = 100
+                                                    )
+                                                ) + scaleIn(
+                                                    tween(300, delayMillis = 100),
+                                                    initialScale = 0.4f
+                                                ),
                                                 exit = slideOutVertically { it * 2 } + fadeOut()
                                             )
                                         }
@@ -258,9 +275,7 @@ private fun DeckScreen(
                                 }
                             }
                         }
-                        LazyColumn(
-                            state = lazyColumnState,
-
+                        Box(
                             modifier = Modifier
                                 .renderInSharedTransitionScopeOverlay()
                                 .applyIf(true) {
@@ -272,6 +287,7 @@ private fun DeckScreen(
                                     }
                                 }
                                 .fillMaxWidth()
+                                .fillMaxHeight()
                                 .padding(horizontal = 10.dp)
                                 .dropShadow(
                                     shape = RoundedCornerShape(25.dp),
@@ -282,73 +298,118 @@ private fun DeckScreen(
                                     )
                                 )
                                 .clip(RoundedCornerShape(25.dp))
-                                .background(
-                                    AppTheme.colors.background
-                                )
-                                .nestedScroll(topmostAppBarState.nestedScrollConnection)
-                        ) {
-                            items(state.cards.size) {
-                                val card = state.cards[it]
-                                Column(Modifier.clickable {}) {
-                                    Column(
-                                        modifier = Modifier.padding(
-                                            horizontal = 17.dp,
-                                            vertical = 14.dp
-                                        ).applyIf(it == 0) {
-                                            padding(top = 10.dp)
-                                        }.applyIf(it == state.cards.lastIndex) {
-                                            padding(bottom = 10.dp)
-                                        }
-                                    ) {
-                                        Text(
-                                            buildAnnotatedString {
-                                                append(card.front)
-                                                if (card.phonetic.isNotBlank()) {
-                                                    withStyle(
-                                                        SpanStyle(
-                                                            color = AppTheme.colors.textNegativeSecondary,
-                                                            fontWeight = FontWeight.Normal
-                                                        )
-                                                    ) {
-                                                        append(" /${card.phonetic}/")
-                                                    }
+                                .background(AppTheme.colors.background)) {
+                            if (state.cards.isNotEmpty()) {
+                                LazyColumn(
+                                    state = lazyColumnState,
+                                    modifier = Modifier
+                                        .nestedScroll(topmostAppBarState.nestedScrollConnection)
+                                ) {
+                                    items(state.cards.size) {
+                                        val card = state.cards[it]
+                                        Column(Modifier.clickable {}) {
+                                            Column(
+                                                modifier = Modifier.padding(
+                                                    horizontal = 17.dp,
+                                                    vertical = 14.dp
+                                                ).applyIf(it == 0) {
+                                                    padding(top = 10.dp)
+                                                }.applyIf(it == state.cards.lastIndex) {
+                                                    padding(bottom = 10.dp)
                                                 }
+                                            ) {
+                                                Text(
+                                                    buildAnnotatedString {
+                                                        append(card.front)
+                                                        if (card.phonetic.isNotBlank()) {
+                                                            withStyle(
+                                                                SpanStyle(
+                                                                    color = AppTheme.colors.textNegativeSecondary,
+                                                                    fontWeight = FontWeight.Normal
+                                                                )
+                                                            ) {
+                                                                append(" /${card.phonetic}/")
+                                                            }
+                                                        }
 //                                            appendInlineContent("audio", "audio")
-                                            },
-                                            inlineContent = mapOf(
-                                                "audio" to InlineTextContent(
-                                                    Placeholder(
-                                                        17.sp, 17.sp,
-                                                        PlaceholderVerticalAlign.Center
-                                                    ), {
-                                                        Icon(
-                                                            painter = painterResource(R.drawable.ic_light_sound_wave),
-                                                            contentDescription = null,
-                                                            modifier = Modifier.height(30.dp),
-                                                            tint = Color(0xFFB2B2B2)
-                                                        )
-                                                    })
-                                            ),
-                                            style = TextStyle(
-                                                fontFamily = DMSans,
-                                                fontWeight = FontWeight.Medium,
-                                                fontSize = 18.sp
-                                            ),
-                                            color = Color.Black
-                                        )
-                                        Text(
-                                            text = card.back,
-                                            fontSize = 17.sp,
-                                            fontFamily = DMSansVazir,
-                                            color = Color(0xFF515151),
-                                            modifier = Modifier.fillMaxWidth()
-                                        )
+                                                    },
+                                                    inlineContent = mapOf(
+                                                        "audio" to InlineTextContent(
+                                                            Placeholder(
+                                                                17.sp, 17.sp,
+                                                                PlaceholderVerticalAlign.Center
+                                                            ), {
+                                                                Icon(
+                                                                    painter = painterResource(R.drawable.ic_light_sound_wave),
+                                                                    contentDescription = null,
+                                                                    modifier = Modifier.height(30.dp),
+                                                                    tint = Color(0xFFB2B2B2)
+                                                                )
+                                                            })
+                                                    ),
+                                                    style = TextStyle(
+                                                        fontFamily = DMSans,
+                                                        fontWeight = FontWeight.Medium,
+                                                        fontSize = 18.sp
+                                                    ),
+                                                    color = Color.Black
+                                                )
+                                                Text(
+                                                    text = card.back,
+                                                    fontSize = 17.sp,
+                                                    fontFamily = DMSansVazir,
+                                                    color = Color(0xFF515151),
+                                                    modifier = Modifier.fillMaxWidth()
+                                                )
+                                            }
+                                            if (it != state.cards.lastIndex) {
+                                                HorizontalDivider(
+                                                    modifier = Modifier.padding(horizontal = 10.dp),
+                                                    color = Color(0xFFEFEFEF)
+                                                )
+                                            }
+                                        }
                                     }
-                                    if (it != state.cards.lastIndex) {
-                                        HorizontalDivider(
-                                            modifier = Modifier.padding(horizontal = 10.dp),
-                                            color = Color(0xFFEFEFEF)
-                                        )
+                                }
+                            }
+                            else {
+                                Box(modifier = Modifier.fillMaxSize()) {
+                                    Column(
+                                        modifier = Modifier
+                                            .align(Alignment.Center)
+                                            .padding(
+                                                PaddingValues(bottom = innerPadding.calculateBottomPadding())
+                                            ),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Spacer(Modifier.weight(1f))
+                                        Box(modifier = Modifier.offset(x = 30.dp, y = 0.dp)) {
+                                            Spacer(
+                                                Modifier
+                                                    .offset(x = -(193 / 5).dp, y = 0.dp)
+                                                    .size(193.dp)
+                                                    .background(Color(0xFFFFF9D4), CircleShape)
+                                            )
+                                            Image(
+                                                painter = painterResource(R.drawable.first_ever_brainy),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(137.dp, 185.dp)
+                                            )
+                                        }
+                                        Box(
+                                            modifier = Modifier.weight(1.4f),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                "No Card Found",
+                                                fontFamily = LifeSaver,
+                                                fontSize = 32.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                lineHeight = 55.sp,
+                                                modifier = Modifier.padding(top = 30.dp)
+                                            )
+                                        }
+                                        Spacer(Modifier.height(50.dp))
                                     }
                                 }
                             }
