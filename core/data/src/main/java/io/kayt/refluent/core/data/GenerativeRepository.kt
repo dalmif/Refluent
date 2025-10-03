@@ -1,6 +1,7 @@
 package io.kayt.refluent.core.data
 
 import com.google.ai.client.generativeai.GenerativeModel
+import io.kayt.refluent.core.data.utils.exemptCancellation
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -14,7 +15,7 @@ class GenerativeRepository @Inject constructor() {
         apiKey = apiKey
     )
 
-    suspend fun generateExampleSentences(word: String): String {
+    suspend fun generateExampleSentences(word: String): Result<String> {
         val prompt = """
             Generate 3 example sentences using the word '$word'. Rules:
             - Format as numbered HTML list (<ol> and <li> tags)
@@ -34,18 +35,16 @@ class GenerativeRepository @Inject constructor() {
             <li>Medium sentence with <b>word</b></li>
             </ol>
             """.trimIndent()
-        try {
+        return runCatching {
             val response = generativeModel.generateContent(prompt)
-            return response.text
+            response.text
                 ?.replace("```html", "")
                 ?.replace("```", "")
-                ?.trim() ?: "No examples generated"
-        } catch (e: Exception) {
-            return "Error generating examples: ${e.message}"
-        }
+                ?.trim() ?: throw IllegalStateException("The response is null")
+        }.exemptCancellation()
     }
 
-    suspend fun generateDefinition(word: String): String {
+    suspend fun generateDefinition(word: String): Result<String> {
         val prompt = """
                 Define the word '$word'. Rules:
                 - Return pure HTML format only
@@ -76,14 +75,12 @@ class GenerativeRepository @Inject constructor() {
                 <i>Synonyms:</i> word1, word2, word3
                 </div>
                 """.trimIndent()
-        try {
+        return runCatching {
             val response = generativeModel.generateContent(prompt)
-            return response.text
+            response.text
                 ?.replace("```html", "")
                 ?.replace("```", "")
-                ?.trim() ?: "No examples generated"
-        } catch (e: Exception) {
-            return "Error generating examples: ${e.message}"
-        }
+                ?.trim() ?: throw IllegalStateException("The response is null")
+        }.exemptCancellation()
     }
 }

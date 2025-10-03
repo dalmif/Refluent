@@ -25,8 +25,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
-import io.kayt.refluent.core.ui.theme.AppTheme
 import io.kayt.refluent.core.ui.R
+import io.kayt.refluent.core.ui.theme.AppTheme
 
 @Composable
 fun SearchTextFiled(
@@ -46,8 +46,14 @@ fun SearchTextFiled(
                     ),
                     shape = CircleShape
                 )
-                .shadow(4.dp, CircleShape, ambientColor = Color.Black.copy(alpha = 0.2f), spotColor = Color.Black.copy(0.2f))
-                .background(Color.White),
+                .shadow(
+                    4.dp,
+                    CircleShape,
+                    ambientColor = Color.Black.copy(alpha = 0.2f),
+                    spotColor = Color.Black.copy(0.2f)
+                )
+                .background(Color.White)
+                .padding(end = 80.dp),
             onValueChange = onValueChange,
             value = value,
             isError = false,

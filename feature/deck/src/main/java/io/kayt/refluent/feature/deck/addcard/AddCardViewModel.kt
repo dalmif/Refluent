@@ -10,13 +10,16 @@ import io.kayt.refluent.core.data.DeckRepository
 import io.kayt.refluent.core.data.GenerativeRepository
 import io.kayt.refluent.core.data.VocabularyRepository
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -30,6 +33,8 @@ class AddCardViewModel @Inject constructor(
 
     val deckId = savedStateHandle.toRoute<AddCardRoute>().deckId
     val state = MutableStateFlow(AddCardUiState())
+    private val _events = Channel<AddCardEvent>(64)
+    val events = _events.receiveAsFlow()
 
     @OptIn(FlowPreview::class)
     val phonetic = state
@@ -68,32 +73,45 @@ class AddCardViewModel @Inject constructor(
 
     fun onAiGenerateClick(generate: AiGenerate) {
         val currentState = state.value
+        val frontSide = currentState.frontSide
+        if (frontSide.isBlank()) return
         viewModelScope.launch {
-            val aiResult = when (generate) {
-                is AiGenerate.MakeExampleSentences -> {
-                    state.value = state.value.copy(aiButtonLoading = state.value.aiButtonLoading.withLoading(0))
-                    val response = generativeRepository.generateExampleSentences(currentState.frontSide)
-                    state.value = state.value.copy(aiButtonLoading = state.value.aiButtonLoading.withoutLoading(0))
-                    response
+            val aiResult: Result<String> = when (generate) {
+                is AiGenerate.MakeExampleSentences -> withLoading(0) {
+                    generativeRepository.generateExampleSentences(frontSide)
                 }
 
-                is AiGenerate.MakeDefinition -> {
-                    state.value = state.value.copy(aiButtonLoading = state.value.aiButtonLoading.withLoading(1))
-                    val response = generativeRepository.generateDefinition(currentState.frontSide)
-                    state.value = state.value.copy(aiButtonLoading = state.value.aiButtonLoading.withoutLoading(1))
-                    response
+
+                is AiGenerate.MakeDefinition -> withLoading(1) {
+                    generativeRepository.generateDefinition(frontSide)
                 }
+
 
                 is AiGenerate.Custom -> {
                     TODO("Not yet implemented")
                 }
             }
-            val position = state.value.commentRichText.toText().length
-            state.value.commentRichText.insertHtml(
-                (if (position == 0) "" else "<br>") + aiResult,
-                state.value.commentRichText.toText().length
-            )
+            aiResult.onSuccess {
+                val position = state.value.commentRichText.toText().length
+                state.value.commentRichText.insertHtml(
+                    (if (position == 0) "" else "<br>") + it,
+                    state.value.commentRichText.toText().length
+                )
+            }.onFailure {
+                _events.trySend(AddCardEvent.AiGeneratingFailed)
+            }
         }
+    }
+
+    inline fun <T> withLoading(aiIndex: Int, block: () -> T): T {
+        state.update {
+            it.copy(aiButtonLoading = it.aiButtonLoading.withLoading(aiIndex))
+        }
+        val response = block()
+        state.update {
+            it.copy(aiButtonLoading = it.aiButtonLoading.withoutLoading(aiIndex))
+        }
+        return response
     }
 }
 
@@ -103,6 +121,10 @@ data class AddCardUiState(
     val aiButtonLoading: AiButtonLoading = AiButtonLoading.None,
     val commentRichText: RichTextState = RichTextState()
 )
+
+sealed interface AddCardEvent {
+    data object AiGeneratingFailed : AddCardEvent
+}
 
 sealed interface AiGenerate {
     object MakeExampleSentences : AiGenerate

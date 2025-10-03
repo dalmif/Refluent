@@ -2,6 +2,7 @@ package io.kayt.refluent.core.data
 
 import io.kayt.core.model.Card
 import io.kayt.core.model.Deck
+import io.kayt.core.model.SearchResultCard
 import io.kayt.refluent.core.database.AppDatabase
 import io.kayt.refluent.core.database.entity.CardEntity
 import io.kayt.refluent.core.database.entity.DeckEntity
@@ -51,6 +52,35 @@ class DeckRepository @Inject constructor(
                     color2 = colors.second
                 )
             )
+        }
+    }
+
+    suspend fun searchCardGlobally(query: String): List<SearchResultCard> {
+       return withContext(Dispatchers.IO) {
+            deckDataAccess.searchCardsWithDeck(query).map {
+                SearchResultCard(
+                    card = it.card.let {
+                        Card(
+                            id = it.uid,
+                            front = it.frontSide,
+                            back = it.backSide,
+                            deckId = it.deckOwnerId,
+                            interval = it.interval,
+                            repetition = it.repetition,
+                            easeFactor = it.easeFactor,
+                            dueDate = it.nextReview,
+                            lastReviewed = it.lastReviewed ?: 0L,
+                            createdDateTime = it.createdDateTime,
+                            isArchived = it.isArchived,
+                            phonetic = it.phonetic,
+                            comment = it.comment,
+                            tags = it.tags
+                        )
+                    },
+                    deckColor = it.deck.color1 to it.deck.color2,
+                    deckName = it.deck.name
+                )
+            }
         }
     }
 
@@ -110,7 +140,7 @@ class DeckRepository @Inject constructor(
 
     fun getAllDeck(): Flow<List<Deck>> = channelFlow {
         send(Unit)
-        while(currentCoroutineContext().isActive) {
+        while (currentCoroutineContext().isActive) {
             try {
                 deckDataAccess.getTheNearestDueCard()
                     .filterNotNull()
@@ -126,8 +156,8 @@ class DeckRepository @Inject constructor(
                         // next nearest one, as the current one is past now.
                         throw AbortFlowException()
                     }
+            } catch (ex: AbortFlowException) {
             }
-            catch (ex : AbortFlowException) {}
         }
     }.flatMapLatest {
         deckDataAccess.getDeckWithCardCounts()

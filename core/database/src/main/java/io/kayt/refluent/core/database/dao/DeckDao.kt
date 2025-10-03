@@ -4,8 +4,10 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import io.kayt.refluent.core.database.entity.CardEntity
+import io.kayt.refluent.core.database.entity.CardWithDeck
 import io.kayt.refluent.core.database.entity.DeckEntity
 import io.kayt.refluent.core.database.entity.DeckWithStats
 import kotlinx.coroutines.flow.Flow
@@ -83,5 +85,22 @@ interface DeckDao {
 """
     )
     fun getDeckById(deckId: Long): Flow<DeckWithStats>
+
+    @Transaction
+    @Query("""
+        SELECT * FROM cards
+        WHERE frontSide LIKE '%' || :query || '%' COLLATE NOCASE
+           OR backSide  LIKE '%' || :query || '%' COLLATE NOCASE
+           OR comment   LIKE '%' || :query || '%' COLLATE NOCASE
+        ORDER BY
+            CASE
+                WHEN frontSide LIKE '%' || :query || '%' COLLATE NOCASE THEN 1
+                WHEN backSide  LIKE '%' || :query || '%' COLLATE NOCASE THEN 2
+                WHEN comment   LIKE '%' || :query || '%' COLLATE NOCASE THEN 3
+                ELSE 4
+            END,
+            createdDateTime DESC
+    """)
+    suspend fun searchCardsWithDeck(query: String): List<CardWithDeck>
 
 }

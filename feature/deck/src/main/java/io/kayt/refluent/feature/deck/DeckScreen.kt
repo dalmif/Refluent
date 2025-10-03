@@ -31,9 +31,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -52,13 +50,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.Placeholder
-import androidx.compose.ui.text.PlaceholderVerticalAlign
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -69,6 +61,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.kayt.core.model.util.applyIf
 import io.kayt.refluent.core.ui.R
+import io.kayt.refluent.core.ui.component.DeckEntry
 import io.kayt.refluent.core.ui.component.HeadlessTopmostAppBar
 import io.kayt.refluent.core.ui.component.LocalNavAnimatedVisibilityScope
 import io.kayt.refluent.core.ui.component.LocalSharedTransitionScope
@@ -76,8 +69,6 @@ import io.kayt.refluent.core.ui.component.button.PrimaryButton
 import io.kayt.refluent.core.ui.component.button.SecondaryButton
 import io.kayt.refluent.core.ui.component.rememberTopmostAppBarState
 import io.kayt.refluent.core.ui.theme.AppTheme
-import io.kayt.refluent.core.ui.theme.typography.DMSans
-import io.kayt.refluent.core.ui.theme.typography.DMSansVazir
 import io.kayt.refluent.core.ui.theme.typography.LifeSaver
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -307,72 +298,22 @@ private fun DeckScreen(
                                 ) {
                                     items(state.cards.size) {
                                         val card = state.cards[it]
-                                        Column(Modifier.clickable {}) {
-                                            Column(
-                                                modifier = Modifier.padding(
-                                                    horizontal = 17.dp,
-                                                    vertical = 14.dp
-                                                ).applyIf(it == 0) {
+                                        DeckEntry(
+                                            card = card,
+                                            modifier = Modifier.clickable {}
+                                                .applyIf(it == 0) {
                                                     padding(top = 10.dp)
                                                 }.applyIf(it == state.cards.lastIndex) {
                                                     padding(bottom = 10.dp)
                                                 }
-                                            ) {
-                                                Text(
-                                                    buildAnnotatedString {
-                                                        append(card.front)
-                                                        if (card.phonetic.isNotBlank()) {
-                                                            withStyle(
-                                                                SpanStyle(
-                                                                    color = AppTheme.colors.textNegativeSecondary,
-                                                                    fontWeight = FontWeight.Normal
-                                                                )
-                                                            ) {
-                                                                append(" /${card.phonetic}/")
-                                                            }
-                                                        }
-//                                            appendInlineContent("audio", "audio")
-                                                    },
-                                                    inlineContent = mapOf(
-                                                        "audio" to InlineTextContent(
-                                                            Placeholder(
-                                                                17.sp, 17.sp,
-                                                                PlaceholderVerticalAlign.Center
-                                                            ), {
-                                                                Icon(
-                                                                    painter = painterResource(R.drawable.ic_light_sound_wave),
-                                                                    contentDescription = null,
-                                                                    modifier = Modifier.height(30.dp),
-                                                                    tint = Color(0xFFB2B2B2)
-                                                                )
-                                                            })
-                                                    ),
-                                                    style = TextStyle(
-                                                        fontFamily = DMSans,
-                                                        fontWeight = FontWeight.Medium,
-                                                        fontSize = 18.sp
-                                                    ),
-                                                    color = Color.Black
-                                                )
-                                                Text(
-                                                    text = card.back,
-                                                    fontSize = 17.sp,
-                                                    fontFamily = DMSansVazir,
-                                                    color = Color(0xFF515151),
-                                                    modifier = Modifier.fillMaxWidth()
-                                                )
-                                            }
-                                            if (it != state.cards.lastIndex) {
-                                                HorizontalDivider(
-                                                    modifier = Modifier.padding(horizontal = 10.dp),
-                                                    color = Color(0xFFEFEFEF)
-                                                )
-                                            }
-                                        }
+                                        )
+                                        HorizontalDivider(
+                                            modifier = Modifier.padding(horizontal = 10.dp),
+                                            color = Color(0xFFEFEFEF)
+                                        )
                                     }
                                 }
-                            }
-                            else {
+                            } else {
                                 Box(modifier = Modifier.fillMaxSize()) {
                                     Column(
                                         modifier = Modifier

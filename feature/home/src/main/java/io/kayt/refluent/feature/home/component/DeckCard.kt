@@ -1,8 +1,13 @@
 package io.kayt.refluent.feature.home.component
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,7 +21,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,6 +41,8 @@ import io.kayt.refluent.core.ui.R
 import io.kayt.refluent.core.ui.component.LocalNavAnimatedVisibilityScope
 import io.kayt.refluent.core.ui.component.LocalSharedTransitionScope
 import io.kayt.refluent.core.ui.theme.AppTheme
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.isActive
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -36,9 +50,37 @@ fun DeckCard(
     deck: Deck,
     onClick: () -> Unit,
     onStudyClick: () -> Unit,
+    onLongPress: () -> Unit,
     deckId: Long,
     modifier: Modifier = Modifier
 ) {
+    val scaleAnim = remember { Animatable(0f) }
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val lastValueOfAnimation = remember { mutableFloatStateOf(0f) }
+    LaunchedEffect(isPressed) {
+        if (isPressed) {
+            val start = withFrameNanos { it }
+            val startedValue = lastValueOfAnimation.floatValue
+            while (currentCoroutineContext().isActive) {
+                val now = withFrameNanos { it }
+                val elapsedMs = (now - start) / 1_000_000
+                val currentValue = (startedValue + (elapsedMs / 1_000f)).coerceAtMost(1f)
+                if (scaleAnim.value != currentValue && currentValue == 1.0f) {
+                    onLongPress()
+                }
+                scaleAnim.snapTo(currentValue)
+            }
+        } else {
+            scaleAnim.animateTo(0f, tween(1000)){
+                lastValueOfAnimation.floatValue = value
+            }
+        }
+    }
+
+    val colorPoint = scaleAnim.value
+
+
     with(LocalSharedTransitionScope.current) {
         Column(
             modifier = modifier
@@ -48,11 +90,17 @@ fun DeckCard(
                 )
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(20.dp))
-                .clickable(onClick = onClick)
                 .background(
                     Brush.horizontalGradient(
-                        listOf(Color(deck.colors.first), Color(deck.colors.second))
+                        colorPoint to Color(deck.colors.first),
+                        1f to Color(deck.colors.second)
                     )
+                )
+                .combinedClickable(
+                    interactionSource = interactionSource,
+                    indication = ripple(),
+                    onClick = onClick,
+                    onLongClick = onLongPress
                 )
                 .padding(start = 21.dp, end = 16.dp)
                 .padding(top = 38.dp, bottom = 22.dp)
