@@ -1,5 +1,6 @@
 package io.kayt.refluent.feature.home
 
+import android.R.attr.name
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.core.EaseOutExpo
@@ -52,6 +53,7 @@ import io.kayt.refluent.core.ui.theme.AppTheme
 import io.kayt.refluent.core.ui.theme.typography.LifeSaver
 import io.kayt.refluent.feature.home.component.DeckCard
 import io.kayt.refluent.feature.home.component.SearchTextFiled
+import java.time.LocalTime
 
 @Composable
 internal fun HomeScreen(
@@ -64,7 +66,6 @@ internal fun HomeScreen(
         state = state,
         onAddDeckClick = onAddDeckClick,
         onDeckClick = onDeckClick,
-        modifier = Modifier
     )
 }
 
@@ -73,8 +74,7 @@ internal fun HomeScreen(
 private fun HomeScreen(
     state: HomeUiState,
     onAddDeckClick: () -> Unit,
-    onDeckClick: (Long) -> Unit,
-    modifier: Modifier = Modifier
+    onDeckClick: (Long) -> Unit
 ) {
     with(LocalSharedTransitionScope.current) {
         MeshGradient(
@@ -144,14 +144,21 @@ private fun HomeScreen(
                                 .fillMaxWidth()
                                 .padding(horizontal = 9.dp)
                         ) {
+                            val name = when (state) {
+                                is HomeUiState.Empty -> state.name
+                                is HomeUiState.Success -> state.name
+                            }
+
                             Text(
-                                "Good Morning,",
+                                "${getGreeting()}${if(name.isBlank()) "!" else ","}",
                                 style = AppTheme.typography.greeting1
                             )
-                            Text(
-                                "Parisa",
-                                style = AppTheme.typography.greeting2
-                            )
+                            if (name.isNotBlank()) {
+                                Text(
+                                    name.replaceFirstChar { it.uppercase() },
+                                    style = AppTheme.typography.greeting2
+                                )
+                            }
                         }
                     }
 
@@ -188,7 +195,10 @@ private fun HomeScreen(
                                         )
                                     }
                                     item {
-                                        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                        Box(
+                                            Modifier.fillMaxWidth(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
                                             TextButton(onAddDeckClick) {
                                                 Text(
                                                     text = "Create new deck",
@@ -256,5 +266,15 @@ private fun HomeScreen(
                 }
             }
         }
+    }
+}
+
+private fun getGreeting(): String {
+    val now = LocalTime.now()
+    return when (now.hour) {
+        in 5..11 -> "Good morning"
+        in 12..17 -> "Good afternoon"
+        in 18..21 -> "Good evening"
+        else -> "Good night"
     }
 }

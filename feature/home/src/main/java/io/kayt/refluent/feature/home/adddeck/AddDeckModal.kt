@@ -1,6 +1,10 @@
 package io.kayt.refluent.feature.home.adddeck
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -34,6 +38,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -57,6 +62,7 @@ import io.kayt.refluent.core.ui.theme.AppTheme
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.launch
 import kotlin.math.floor
 
 internal const val COLOR_FIXED: Int = 0xFFEFE3B1.toInt()
@@ -118,6 +124,8 @@ private fun AddDeckModal(
             )
             .scrollableHorizontalFraction(fraction)
     ) {
+        val placeholderBaseColor = Color.Black.copy(alpha = 0.4f)
+        val placeholderAnimatable = remember { Animatable(placeholderBaseColor) }
         Box {
             Column {
                 Column(
@@ -149,7 +157,7 @@ private fun AddDeckModal(
                                 if (state.name.isEmpty()) {
                                     Text(
                                         text = "ENTER THE NAME OF THE DECK",
-                                        color = Color.Black.copy(alpha = 0.4f),
+                                        color = placeholderAnimatable.value,
                                         style = AppTheme.typography.headline1
                                     )
                                 }
@@ -186,16 +194,27 @@ private fun AddDeckModal(
                     verticalArrangement = Arrangement.Bottom
                 ) {
                     Text(
-                        "Set the correct from and to languages helps the " +
-                                "AI tools to create example and explanation for words with the languages that are set here.\n",
+                        "A deck is a collection of flashcards grouped together on a specific topic. " +
+                                "Think of it like a folder for your study cards. \n",
                         style = AppTheme.typography.body2,
                         color = Color(0xFF929292),
                         modifier = Modifier
                             .padding(horizontal = 23.dp)
                             .padding(top = 23.dp)
                     )
+                    val scope = rememberCoroutineScope()
                     PrimaryButton(
-                        onClick = onAddClick,
+                        onClick = {
+                            if (state.name.isNotBlank()) {
+                                onAddClick()
+                            }
+                            else {
+                                scope.launch {
+                                    placeholderAnimatable.animateTo(Color.Red, tween(140, easing = FastOutSlowInEasing))
+                                    placeholderAnimatable.animateTo(placeholderBaseColor, tween(140, easing = FastOutSlowInEasing))
+                                }
+                            }
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 4.dp)

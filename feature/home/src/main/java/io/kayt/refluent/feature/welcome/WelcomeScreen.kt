@@ -1,5 +1,9 @@
 package io.kayt.refluent.feature.welcome
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -10,7 +14,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -22,7 +25,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -43,37 +48,76 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.kayt.refluent.core.ui.R
 import io.kayt.refluent.core.ui.component.button.PrimaryButton
 import io.kayt.refluent.core.ui.theme.AppTheme
 import io.kayt.refluent.core.ui.theme.colors.Purple1
 import io.kayt.refluent.core.ui.theme.typography.DMSansVazir
 import io.kayt.refluent.core.ui.theme.typography.LifeSaver
+import kotlinx.coroutines.delay
+
 
 @Composable
 fun WelcomeScreen(
-    onNextButtonClick: () -> Unit,
-    modifier: Modifier = Modifier
+    viewModel: WelcomeViewModel = hiltViewModel(),
+    onNextButtonClick: () -> Unit
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    WelcomeScreen(
+        state = state,
+        onNameChange = viewModel::onNameChange,
+        onNextButtonClick = {
+            viewModel.saveUsername()
+            onNextButtonClick()
+        }
+    )
+}
+
+@Composable
+private fun WelcomeScreen(
+    state: WelcomeUiState,
+    onNameChange: (String) -> Unit,
+    onNextButtonClick: () -> Unit
 ) {
     WelcomeScreenBackground(
         modifier = Modifier
             .fillMaxSize()
-//            .imePadding()
     ) {
         Scaffold(containerColor = Color.Transparent) { paddingValues ->
+            var helloAt by remember { mutableIntStateOf(0) }
+            LaunchedEffect(Unit) {
+                while (true) {
+                    delay(2_500)
+                    helloAt++
+                }
+            }
+            AnimatedContent(
+                helloAt,
+                modifier = Modifier
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center,
+                transitionSpec = { slideInVertically { -it } togetherWith slideOutVertically { -it } }
+            ) {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = hellos[it % hellos.size],
+                        style = AppTheme.typography.headline1.copy(
+                            fontWeight = FontWeight.Light,
+                            fontSize = 45.sp
+                        ),
+                        modifier = Modifier.padding(paddingValues)
+                    )
+                }
+            }
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                Text(
-                    text = "Bonjour",
-                    style = AppTheme.typography.headline1.copy(
-                        fontWeight = FontWeight.Light,
-                        fontSize = 45.sp
-                    ),
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
                 Spacer(
                     Modifier
                         .weight(1f)
@@ -104,9 +148,9 @@ fun WelcomeScreen(
                     color = Color(0xFF4F4224)
                 )
                 CustomTextField(
-                    value = "",
+                    value = state.name,
                     hint = "Enter your first name",
-                    onValueChange = {},
+                    onValueChange = { onNameChange(it) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 20.dp)
@@ -123,11 +167,37 @@ fun WelcomeScreen(
                 ) {
                     Text("Let's get started")
                 }
+
                 Spacer(Modifier.height(50.dp))
             }
         }
     }
 }
+
+val hellos = listOf(
+    "Hello",        // English
+    "Bonjour",      // French
+    "Hola",         // Spanish
+    "Hallo",        // German
+    "Ciao",         // Italian
+    "Olá",          // Portuguese
+    "Привет",       // Russian
+    "こんにちは",      // Japanese
+    "你好",           // Chinese (Mandarin)
+    "안녕하세요",       // Korean
+    "Merhaba",      // Turkish
+    "سلام",          // Persian / Arabic
+    "Γειά σου",      // Greek
+    "Shalom",       // Hebrew
+    "नमस्ते",        // Hindi
+    "Halo",         // Indonesian
+    "Hei",          // Norwegian / Finnish
+    "Hej",          // Swedish / Danish
+    "Selam",        // Somali / Turkish variant
+    "Sawasdee",     // Thai
+    "Habari",       // Swahili
+    "Kamusta"       // Filipino / Tagalog
+)
 
 
 @Composable
@@ -135,8 +205,7 @@ private fun CustomTextField(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
-    hint: String? = null,
-    phonetic: String? = null,
+    hint: String? = null
 ) {
     var active by remember { mutableStateOf(false) }
     BasicTextField(

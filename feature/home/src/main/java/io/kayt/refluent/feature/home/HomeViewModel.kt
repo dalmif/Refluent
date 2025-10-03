@@ -1,38 +1,44 @@
 package io.kayt.refluent.feature.home
 
-import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.kayt.core.model.Deck
 import io.kayt.refluent.core.data.DeckRepository
+import io.kayt.refluent.core.data.UserRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    deckRepository: DeckRepository
+    deckRepository: DeckRepository,
+    userRepository: UserRepository,
 ) : ViewModel() {
 
-    val state: StateFlow<HomeUiState> = deckRepository.getAllDeck()
-        .map { decks ->
+    val state: StateFlow<HomeUiState> =
+        combine(
+            flowOf(userRepository.getUsername()),
+            deckRepository.getAllDeck()
+        )
+        { user, decks ->
             if (decks.isEmpty()) {
-                HomeUiState.Empty
+                HomeUiState.Empty(name = user ?: "")
             } else {
-                HomeUiState.Success(decks)
+                HomeUiState.Success(decks, name = user ?: "")
             }
         }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = HomeUiState.Empty
-        )
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = HomeUiState.Empty(name = "")
+            )
 }
 
 sealed interface HomeUiState {
-    data object Empty : HomeUiState
-    data class Success(val decks: List<Deck>) : HomeUiState
+    data class Empty(val name : String) : HomeUiState
+    data class Success(val decks: List<Deck>, val name: String) : HomeUiState
 }
