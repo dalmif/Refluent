@@ -14,12 +14,14 @@ data class DeckRoute(val deckId: Long)
 fun NavGraphBuilder.deck(
     onAddCardClick: (deckId: Long) -> Unit,
     onStudyClick: (deckId: Long) -> Unit,
+    onEditCardClick: (cardId: Long) -> Unit,
 ) {
     composable<DeckRoute> { route ->
         CompositionLocalProvider(LocalNavAnimatedVisibilityScope provides this) {
             DeckScreen(
                 onAddCardClick = { onAddCardClick(route.toRoute<DeckRoute>().deckId) },
-                onStudyClick = { onStudyClick(route.toRoute<DeckRoute>().deckId) }
+                onStudyClick = { onStudyClick(route.toRoute<DeckRoute>().deckId) },
+                onEditCardClick = onEditCardClick
             )
         }
     }

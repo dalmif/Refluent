@@ -140,6 +140,7 @@ class DeckRepository @Inject constructor(
             // First get the existing card to preserve SRS fields
             val existingCard = deckDataAccess.getCardById(cardId)
 
+            println("mmd here it came existingCard: $existingCard card id : $cardId")
             if (existingCard != null) {
                 deckDataAccess.updateCard(
                     existingCard.copy(
@@ -248,6 +249,29 @@ class DeckRepository @Inject constructor(
                 )
             }
         }
+
+    suspend fun getCardById(cardId: Long): Card? {
+        return withContext(Dispatchers.IO) {
+            deckDataAccess.getCardById(cardId)?.let { cardEntity ->
+                Card(
+                    id = cardEntity.uid,
+                    front = cardEntity.frontSide,
+                    back = cardEntity.backSide,
+                    deckId = cardEntity.deckOwnerId,
+                    interval = cardEntity.interval,
+                    repetition = cardEntity.repetition,
+                    easeFactor = cardEntity.easeFactor,
+                    dueDate = cardEntity.nextReview,
+                    lastReviewed = cardEntity.lastReviewed ?: 0L,
+                    createdDateTime = cardEntity.createdDateTime,
+                    isArchived = cardEntity.isArchived,
+                    phonetic = cardEntity.phonetic,
+                    comment = cardEntity.comment,
+                    tags = cardEntity.tags
+                )
+            }
+        }
+    }
 
     /**
      * Returns only cards that are due for review for a given deck.

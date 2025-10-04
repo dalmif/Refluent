@@ -9,6 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import io.kayt.refluent.core.ui.component.LocalSharedTransitionScope
 import io.kayt.refluent.feature.deck.addcard.addCard
 import io.kayt.refluent.feature.deck.addcard.navigateToAddCard
+import io.kayt.refluent.feature.deck.addcard.navigateToEditCard
 import io.kayt.refluent.feature.deck.deck
 import io.kayt.refluent.feature.deck.flashcard.flashCard
 import io.kayt.refluent.feature.deck.flashcard.navigateToFlashcard
@@ -53,6 +54,9 @@ fun MainUi(
                     },
                     onStudyClick = {
                         navController.navigateToFlashcard(it)
+                    },
+                    onEditCardClick = {
+                        navController.navigateToEditCard(it)
                     }
                 )
                 flashCard()

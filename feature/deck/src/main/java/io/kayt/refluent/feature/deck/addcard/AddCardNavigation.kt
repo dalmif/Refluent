@@ -6,16 +6,18 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.dialog
 import io.kayt.refluent.core.ui.theme.AppTheme
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class AddCardRoute(val deckId: Long)
+data class AddCardRoute(val deckId: Long, val editingCardId: Long? = null)
 
 @OptIn(ExperimentalMaterial3Api::class)
 fun NavGraphBuilder.addCard(navController: NavController) {
@@ -24,7 +26,7 @@ fun NavGraphBuilder.addCard(navController: NavController) {
             skipPartiallyExpanded = true,
             confirmValueChange = { it != SheetValue.Hidden }
         )
-
+        val coroutineScope = rememberCoroutineScope()
         ModalBottomSheet(
             containerColor = AppTheme.colors.background,
             modifier = Modifier
@@ -35,7 +37,18 @@ fun NavGraphBuilder.addCard(navController: NavController) {
                 navController.popBackStack()
             }) {
             AddCardScreen(
-                onAddClick = { navController.popBackStack() }
+                onAddClick = {
+                    coroutineScope.launch {
+                        state.hide()
+                        navController.popBackStack()
+                    }
+                },
+                onBackClick = {
+                    coroutineScope.launch {
+                        state.hide()
+                        navController.popBackStack()
+                    }
+                }
             )
         }
     }
@@ -43,4 +56,8 @@ fun NavGraphBuilder.addCard(navController: NavController) {
 
 fun NavController.navigateToAddCard(deckId: Long) {
     navigate(AddCardRoute(deckId))
+}
+
+fun NavController.navigateToEditCard(cardId: Long) {
+    navigate(AddCardRoute(0, cardId))
 }

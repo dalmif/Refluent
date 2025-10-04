@@ -78,13 +78,15 @@ import kotlinx.coroutines.launch
 fun DeckScreen(
     onAddCardClick: () -> Unit,
     onStudyClick: () -> Unit,
+    onEditCardClick: (cardId: Long) -> Unit,
     deckViewModel: DeckViewModel = hiltViewModel()
 ) {
     val state by deckViewModel.state.collectAsStateWithLifecycle()
     DeckScreen(
         state = state,
         onAddCardClick = onAddCardClick,
-        onStudyClick = onStudyClick
+        onStudyClick = onStudyClick,
+        onEditCardClick = onEditCardClick
     )
 }
 
@@ -93,6 +95,7 @@ fun DeckScreen(
 private fun DeckScreen(
     state: DeckUiState,
     onAddCardClick: () -> Unit,
+    onEditCardClick: (cardId: Long) -> Unit,
     onStudyClick: () -> Unit
 ) {
     with(LocalSharedTransitionScope.current) {
@@ -300,7 +303,9 @@ private fun DeckScreen(
                                         val card = state.cards[it]
                                         DeckEntry(
                                             card = card,
-                                            modifier = Modifier.clickable {}
+                                            modifier = Modifier.clickable {
+                                                onEditCardClick(state.cards[it].id)
+                                            }
                                                 .applyIf(it == 0) {
                                                     padding(top = 10.dp)
                                                 }.applyIf(it == state.cards.lastIndex) {

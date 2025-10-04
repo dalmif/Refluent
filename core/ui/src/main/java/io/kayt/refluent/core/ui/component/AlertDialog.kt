@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,7 +47,7 @@ fun AlertDialog(
                     .wrapContentWidth()
                     .wrapContentHeight(),
                 color = AppTheme.colors.background,
-                shape = MaterialTheme.shapes.extraLarge,
+                shape = RoundedCornerShape(24.dp),
                 tonalElevation = AlertDialogDefaults.TonalElevation
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
@@ -54,7 +55,7 @@ fun AlertDialog(
                     Text(
                         text = title,
                         textAlign = TextAlign.Start,
-                        style = MaterialTheme.typography.headlineSmall.copy(
+                        style = AppTheme.typography.headline3.copy(
                             color = AppTheme.colors.textPrimary
                         )
                     )
@@ -64,7 +65,7 @@ fun AlertDialog(
                     Text(
                         text = description,
                         textAlign = TextAlign.Start,
-                        style = MaterialTheme.typography.bodyMedium.copy(
+                        style = AppTheme.typography.body2.copy(
                             color = AppTheme.colors.textPrimary
                         )
                     )

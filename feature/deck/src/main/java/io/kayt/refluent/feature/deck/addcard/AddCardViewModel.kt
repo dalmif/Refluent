@@ -10,6 +10,7 @@ import io.kayt.refluent.core.data.DeckRepository
 import io.kayt.refluent.core.data.GenerativeRepository
 import io.kayt.refluent.core.data.VocabularyRepository
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
@@ -31,10 +32,31 @@ class AddCardViewModel @Inject constructor(
     private val generativeRepository: GenerativeRepository
 ) : ViewModel() {
 
-    val deckId = savedStateHandle.toRoute<AddCardRoute>().deckId
+    val route = savedStateHandle.toRoute<AddCardRoute>()
+    val deckId = route.deckId
+    val isEditingMode: Boolean
+        get() = route.editingCardId != null
+
     val state = MutableStateFlow(AddCardUiState())
     private val _events = Channel<AddCardEvent>(64)
     val events = _events.receiveAsFlow()
+
+    init {
+        if (isEditingMode) {
+            viewModelScope.launch {
+                val card = deckRepository.getCardById(route.editingCardId!!)
+                if (card != null) {
+                    state.value = AddCardUiState(
+                        frontSide = card.front,
+                        backSide = card.back,
+                        commentRichText = RichTextState().apply {
+                            setHtml(card.comment)
+                        }
+                    )
+                }
+            }
+        }
+    }
 
     @OptIn(FlowPreview::class)
     val phonetic = state
@@ -58,16 +80,36 @@ class AddCardViewModel @Inject constructor(
         state.value = state.value.copy(backSide = newValue)
     }
 
+    fun delete() {
+        if (isEditingMode) {
+            // This shouldn't be canceled even if the screen close
+            GlobalScope.launch {
+                deckRepository.deleteCard(route.editingCardId!!)
+            }
+        }
+    }
+
     fun onAddCardButton() {
         val currentState = state.value
         viewModelScope.launch {
-            deckRepository.addNewCard(
-                deckId = deckId,
-                frontSide = currentState.frontSide,
-                backSide = currentState.backSide,
-                phonetic = phonetic.value ?: "",
-                comment = currentState.commentRichText.toHtml()
-            )
+            if (!isEditingMode) {
+                deckRepository.addNewCard(
+                    deckId = deckId,
+                    frontSide = currentState.frontSide,
+                    backSide = currentState.backSide,
+                    phonetic = phonetic.value ?: "",
+                    comment = currentState.commentRichText.toHtml()
+                )
+            }
+            else {
+                deckRepository.updateCard(
+                    cardId = route.editingCardId!!,
+                    frontSide = currentState.frontSide,
+                    backSide = currentState.backSide,
+                    phonetic = phonetic.value ?: "",
+                    comment = currentState.commentRichText.toHtml()
+                )
+            }
         }
     }
 

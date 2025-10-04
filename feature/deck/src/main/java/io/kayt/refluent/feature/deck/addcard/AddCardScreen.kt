@@ -56,6 +56,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mohamedrejeb.richeditor.ui.material3.OutlinedRichTextEditor
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditorDefaults
 import io.kayt.refluent.core.ui.R
+import io.kayt.refluent.core.ui.component.DeleteAlertDialog
+import io.kayt.refluent.core.ui.component.button.DeleteButton
 import io.kayt.refluent.core.ui.component.button.SecondaryBigButton
 import io.kayt.refluent.core.ui.theme.AppTheme
 import io.kayt.refluent.core.ui.theme.colors.Purple1
@@ -66,10 +68,12 @@ import io.kayt.refluent.feature.deck.component.RichTextStyleRow
 @Composable
 fun AddCardScreen(
     onAddClick: () -> Unit,
+    onBackClick: () -> Unit,
     viewModel: AddCardViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val phonetic by viewModel.phonetic.collectAsStateWithLifecycle()
+    val isEditingMode = viewModel.isEditingMode
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -85,6 +89,9 @@ fun AddCardScreen(
         onFrontSideChange = viewModel::onFrontSideChange,
         onBackSideChange = viewModel::onBackSideChange,
         onAiGenerateClick = viewModel::onAiGenerateClick,
+        isEditingMode = isEditingMode,
+        onDeleteClick = viewModel::delete,
+        onBackClick = onBackClick,
         onAddCardButton = {
             viewModel.onAddCardButton()
             onAddClick()
@@ -97,10 +104,13 @@ fun AddCardScreen(
 private fun AddCardScreen(
     state: AddCardUiState,
     phonetic: String?,
+    isEditingMode: Boolean,
+    onBackClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
     onFrontSideChange: (String) -> Unit,
     onBackSideChange: (String) -> Unit,
     onAiGenerateClick: (AiGenerate) -> Unit,
+    onDeleteClick: () -> Unit,
     onAddCardButton: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
@@ -193,20 +203,49 @@ private fun AddCardScreen(
                     onClick = { onAiGenerateClick(AiGenerate.MakeExampleSentences) },
                     isLoading = state.aiButtonLoading.isLoading(0)
                 )
-                Spacer(Modifier.height(100.dp))
+                Spacer(
+                    Modifier.height(
+                        if (isEditingMode) 150.dp else 100.dp
+                    )
+                )
             }
-
-            SecondaryBigButton(
-                onClick = {
-                    onAddCardButton()
-                },
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 30.dp)
                     .padding(bottom = 20.dp)
                     .align(Alignment.BottomCenter)
             ) {
-                Text("Add Card")
+                if (isEditingMode) {
+                    var deleteConfirmationDialogVisible by remember { mutableStateOf(false) }
+                    DeleteButton({
+                        deleteConfirmationDialogVisible = true
+                    }, modifier = Modifier.fillMaxWidth()) {
+                        Text("Delete card")
+                    }
+                    if (deleteConfirmationDialogVisible) {
+                        DeleteAlertDialog(
+                            onDeleteClick = {
+                                deleteConfirmationDialogVisible = false
+                                onDeleteClick()
+                                onBackClick()
+                            },
+                            onDismissRequest = { deleteConfirmationDialogVisible = false }
+                        )
+                    }
+                }
+                Spacer(Modifier.height(10.dp))
+                SecondaryBigButton(
+                    onClick = onAddCardButton,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        if (isEditingMode)
+                            "Update Card"
+                        else
+                            "Add Card"
+                    )
+                }
             }
         }
     }
