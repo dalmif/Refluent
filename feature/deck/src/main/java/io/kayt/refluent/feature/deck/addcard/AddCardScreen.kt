@@ -196,19 +196,19 @@ private fun AddCardScreen(
                     )
                 }
                 Text(
-                    text = "Generate comment by AI",
+                    text = "Generate comment with AI",
                     style = AppTheme.typography.textFieldTitle,
                     modifier = Modifier.padding(start = 8.dp, bottom = 8.dp, top = 16.dp),
                 )
 
                 AiButton(
-                    text = "Explain the front side",
+                    text = "Explain Front Side",
                     onClick = { onAiGenerateClick(AiGenerate.MakeDefinition) },
                     isLoading = state.aiButtonLoading.isLoading(1)
                 )
                 Spacer(Modifier.height(7.dp))
                 AiButton(
-                    text = "Make some example from front side",
+                    text = "Generate Examples from Front Side",
                     onClick = { onAiGenerateClick(AiGenerate.MakeExampleSentences) },
                     isLoading = state.aiButtonLoading.isLoading(0)
                 )

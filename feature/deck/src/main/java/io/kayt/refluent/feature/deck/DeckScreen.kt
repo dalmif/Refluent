@@ -347,7 +347,7 @@ private fun DeckScreen(
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Text(
-                                                "No Card Found",
+                                                "No Cards Found",
                                                 fontFamily = LifeSaver,
                                                 fontSize = 32.sp,
                                                 fontWeight = FontWeight.Bold,

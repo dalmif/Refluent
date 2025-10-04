@@ -140,7 +140,8 @@ private fun AddDeckModal(
                         .fillMaxWidth()
                 ) {
                     Text(
-                        "Create new deck",
+                        if (isEditing) "Edit the deck"
+                        else "Create new deck",
                         style = AppTheme.typography.body2,
                         color = Color(0x66000000)
                     )

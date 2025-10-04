@@ -1,5 +1,6 @@
 package io.kayt.refluent.feature.home
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.animateContentSize
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -42,6 +44,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -72,7 +76,7 @@ import java.time.LocalTime
 
 @Composable
 internal fun HomeScreen(
-    onAddDeckClick: (deckCount : Int) -> Unit,
+    onAddDeckClick: (deckCount: Int) -> Unit,
     onDeckClick: (Long) -> Unit,
     onDeckEditClick: (Long) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
@@ -80,6 +84,13 @@ internal fun HomeScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val query by viewModel.searchQuery.collectAsStateWithLifecycle()
     val searchResult by viewModel.searchResult.collectAsStateWithLifecycle()
+    val keyboardManager = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+    BackHandler(query.isNotEmpty()) {
+        viewModel.onQueryChange("")
+        focusManager.clearFocus()
+        keyboardManager?.hide()
+    }
     HomeScreen(
         state = state,
         query = query,
@@ -231,10 +242,18 @@ private fun HomeScreen(
                                             }
                                             item {
                                                 Box(
-                                                    Modifier.fillMaxWidth(),
+                                                    Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(vertical = 20.dp),
                                                     contentAlignment = Alignment.Center
                                                 ) {
-                                                    TextButton(onAddDeckClick) {
+                                                    TextButton(
+                                                        onAddDeckClick,
+                                                        modifier = Modifier
+                                                            .height(60.dp)
+                                                            .fillMaxWidth()
+                                                            .padding(horizontal = 30.dp)
+                                                    ) {
                                                         Text(
                                                             text = "Create new deck",
                                                             style = AppTheme.typography.body1.copy(
@@ -285,7 +304,7 @@ private fun HomeScreen(
                                                     contentAlignment = Alignment.Center
                                                 ) {
                                                     Text(
-                                                        "No Deck Found",
+                                                        "No Decks Found",
                                                         fontFamily = LifeSaver,
                                                         fontSize = 32.sp,
                                                         fontWeight = FontWeight.Bold,
@@ -311,79 +330,93 @@ private fun HomeScreen(
                                 }
                             }
                         } else if (searchResult is SearchResult.SearchContent) {
-                            Box(
-                                modifier = Modifier.padding(top = 20.dp)
-                            ) {
-                                val selectedIndex = remember { mutableIntStateOf(-1) }
-                                val scrollState = rememberLazyListState()
-                                LaunchedEffect(Unit) {
-                                    merge(
-                                        snapshotFlow { scrollState.isScrollInProgress },
-                                        snapshotFlow { selectedIndex.intValue }.debounce(2_500)
-                                    )
-                                        .collectLatest {
-                                            selectedIndex.intValue = -1
-                                        }
-                                }
-                                LazyColumn(
-                                    state = scrollState,
-                                    modifier = Modifier.fillMaxSize()
+                            if (searchResult.cards.isNotEmpty()) {
+                                Box(
+                                    modifier = Modifier.padding(top = 20.dp)
                                 ) {
-                                    items(searchResult.cards.size) {
-                                        val card = searchResult.cards[it]
-                                        Box {
-                                            Row {
-                                                DeckEntry(
-                                                    card = card.card,
-                                                    modifier = Modifier.fillMaxWidth()
-                                                )
-                                                Spacer(Modifier.width(40.dp))
+                                    val selectedIndex = remember { mutableIntStateOf(-1) }
+                                    val scrollState = rememberLazyListState()
+                                    LaunchedEffect(Unit) {
+                                        merge(
+                                            snapshotFlow { scrollState.isScrollInProgress },
+                                            snapshotFlow { selectedIndex.intValue }.debounce(2_500)
+                                        )
+                                            .collectLatest {
+                                                selectedIndex.intValue = -1
                                             }
-                                            Box(
-                                                modifier = Modifier
-                                                    .height(40.dp)
-                                                    .widthIn(min = 40.dp)
-                                                    .clip(CircleShape)
-                                                    .clickable(
-                                                        onClick = {
-                                                            if (selectedIndex.intValue == it) {
-                                                                onDeckClick(card.card.deckId)
-                                                            } else {
-                                                                selectedIndex.intValue = it
-                                                            }
-                                                        },
-                                                        indication = null,
-                                                        interactionSource = null
+                                    }
+                                    LazyColumn(
+                                        state = scrollState,
+                                        modifier = Modifier.fillMaxSize()
+                                    ) {
+                                        items(searchResult.cards.size) {
+                                            val card = searchResult.cards[it]
+                                            Box {
+                                                Row {
+                                                    DeckEntry(
+                                                        card = card.card,
+                                                        modifier = Modifier.fillMaxWidth()
                                                     )
-                                                    .background(
-                                                        Brush.horizontalGradient(
-                                                            listOf(
-                                                                Color(card.deckColor.first),
-                                                                Color(card.deckColor.second)
+                                                    Spacer(Modifier.width(40.dp))
+                                                }
+                                                Box(
+                                                    modifier = Modifier
+                                                        .height(40.dp)
+                                                        .widthIn(min = 40.dp)
+                                                        .clip(CircleShape)
+                                                        .clickable(
+                                                            onClick = {
+                                                                if (selectedIndex.intValue == it) {
+                                                                    onDeckClick(card.card.deckId)
+                                                                } else {
+                                                                    selectedIndex.intValue = it
+                                                                }
+                                                            },
+                                                            indication = null,
+                                                            interactionSource = null
+                                                        )
+                                                        .background(
+                                                            Brush.horizontalGradient(
+                                                                listOf(
+                                                                    Color(card.deckColor.first),
+                                                                    Color(card.deckColor.second)
+                                                                )
                                                             )
                                                         )
-                                                    )
-                                                    .padding(horizontal = 15.dp, vertical = 5.dp)
-                                                    .animateContentSize()
-                                                    .align(Alignment.CenterEnd),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                if (selectedIndex.intValue == it) {
-                                                    Text(
-                                                        text = card.deckName.uppercase(),
-                                                        style = AppTheme.typography.body2.copy(
-                                                            fontWeight = FontWeight.Bold
-                                                        ),
-                                                        modifier = Modifier.padding(end = 30.dp)
-                                                    )
+                                                        .padding(
+                                                            horizontal = 15.dp,
+                                                            vertical = 5.dp
+                                                        )
+                                                        .animateContentSize()
+                                                        .align(Alignment.CenterEnd),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    if (selectedIndex.intValue == it) {
+                                                        Text(
+                                                            text = card.deckName.uppercase(),
+                                                            style = AppTheme.typography.body2.copy(
+                                                                fontWeight = FontWeight.Bold
+                                                            ),
+                                                            modifier = Modifier.padding(end = 30.dp)
+                                                        )
+                                                    }
                                                 }
                                             }
+                                            HorizontalDivider(
+                                                modifier = Modifier.padding(horizontal = 10.dp),
+                                                color = Color(0xFFEFEFEF)
+                                            )
                                         }
-                                        HorizontalDivider(
-                                            modifier = Modifier.padding(horizontal = 10.dp),
-                                            color = Color(0xFFEFEFEF)
-                                        )
                                     }
+                                }
+                            } else {
+                                Box(
+                                    Modifier
+                                        .fillMaxSize()
+                                        .imePadding(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text("No cards found", style = AppTheme.typography.headline2)
                                 }
                             }
                         }

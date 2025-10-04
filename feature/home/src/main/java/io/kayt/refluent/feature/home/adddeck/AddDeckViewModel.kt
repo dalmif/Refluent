@@ -65,7 +65,8 @@ class AddDeckViewModel @Inject constructor(
     }
 
     fun onNameChanges(name: String) {
-        _state.value.name = name.substring(0..(name.length - 1).coerceAtMost(30))
+        _state.value.name =
+            name.substring(0..(name.length - 1).coerceAtMost(30)).trimStart().replace("\n", "")
     }
 }
 

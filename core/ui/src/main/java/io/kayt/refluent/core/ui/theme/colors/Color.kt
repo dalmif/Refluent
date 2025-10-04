@@ -2,7 +2,7 @@ package io.kayt.refluent.core.ui.theme.colors
 
 import androidx.compose.ui.graphics.Color
 
-val Purple1 = Color(0xFF6038E5)
+val Purple1 = Color(0xFFB9A60A)
 val Purple2 = Color(0xFFB7A8FF)
 val Purple3 = Color(0xFFD2CCFF)
 val Purple4 = Color(0xFF3A2999)
