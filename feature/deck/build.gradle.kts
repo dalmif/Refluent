@@ -10,5 +10,6 @@ dependencies {
     implementation(libs.richeditor.compose)
     implementation(libs.androidx.material.icons.extended)
     implementation(project(":core:data"))
+    implementation(libs.konfetti.compose)
     implementation(libs.compose.swipeable.cards)
 }

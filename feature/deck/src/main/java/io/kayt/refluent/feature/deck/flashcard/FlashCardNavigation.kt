@@ -10,9 +10,12 @@ import kotlinx.serialization.Serializable
 data class FlashcardRoute(val deckId: Long)
 
 fun NavGraphBuilder.flashCard(
+    onBackClick : () -> Unit,
 ) {
     composable<FlashcardRoute> {
-        FlashcardScreen()
+        FlashcardScreen(
+            onBackClick = onBackClick
+        )
     }
 }
 

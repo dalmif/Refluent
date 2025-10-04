@@ -6,6 +6,7 @@ agp = "8.12.2"
 # Kotlin
 composeSwipeableCards = "1.1.4"
 generativeai = "0.9.0"
+konfettiCompose = "2.0.5"
 kotlin = "2.2.10"
 kotlin-immutable = "0.4.0"
 kotlin-coroutines = "1.10.2"
@@ -75,6 +76,7 @@ androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomRunt
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
 compose-swipeable-cards = { module = "com.github.smartword-app:compose-swipeable-cards", version.ref = "composeSwipeableCards" }
 generativeai = { module = "com.google.ai.client.generativeai:generativeai", version.ref = "generativeai" }
+konfetti-compose = { module = "nl.dionsegijn:konfetti-compose", version.ref = "konfettiCompose" }
 kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
 kotlin-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlin-coroutines" }
 kotlin-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlin-coroutines" }

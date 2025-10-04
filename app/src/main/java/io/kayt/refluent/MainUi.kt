@@ -59,7 +59,11 @@ fun MainUi(
                         navController.navigateToEditCard(it)
                     }
                 )
-                flashCard()
+                flashCard(
+                    onBackClick = {
+                        navController.navigateUp()
+                    }
+                )
                 addCard(navController)
                 addDeck(navController)
                 welcome(onNextButtonClick = {

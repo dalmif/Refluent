@@ -1,7 +1,9 @@
 package io.kayt.refluent.core.ui.component
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun DeleteAlertDialog(
@@ -17,6 +19,6 @@ fun DeleteAlertDialog(
         primaryButtonText = "Delete",
         primaryButtonAction = onDeleteClick,
         secondaryButtonAction = onDismissRequest,
-        modifier = modifier
+        modifier = modifier.padding(horizontal = 20.dp)
     )
 }

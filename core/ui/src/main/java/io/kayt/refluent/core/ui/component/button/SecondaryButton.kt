@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import io.kayt.refluent.core.ui.theme.AppTheme
@@ -53,11 +54,13 @@ fun SecondaryButton(
 fun SecondaryBigButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    background : Color = AppTheme.colors.background,
+    height : Dp = 61.dp,
     content: @Composable RowScope.() -> Unit,
 ) {
     Button(
         modifier = modifier
-            .height(61.dp)
+            .height(height)
             .dropShadow(
                 shape = CircleShape,
                 shadow = Shadow(
@@ -70,7 +73,7 @@ fun SecondaryBigButton(
             .clip(CircleShape)
             .border(2.dp, Color.Black, CircleShape),
         colors = ButtonDefaults.filledTonalButtonColors(
-            containerColor = AppTheme.colors.background
+            containerColor = background
         ),
         onClick = onClick,
         content = {

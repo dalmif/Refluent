@@ -6,12 +6,11 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.kayt.core.model.Card
+import io.kayt.core.model.Deck
 import io.kayt.refluent.core.data.DeckRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
@@ -23,15 +22,17 @@ class FlashcardViewModel @Inject constructor(
     private val deckRepository: DeckRepository
 ) : ViewModel() {
 
-    val state: StateFlow<FlashcardUiState> =
-        flowOf(savedStateHandle.toRoute<FlashcardRoute>().deckId)
-            .flatMapLatest { deckRepository.getDueCardsForDeck(it).take(1) }
-            .map { FlashcardUiState.Success(it) }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = FlashcardUiState.Loading
-            )
+    private val deckId = savedStateHandle.toRoute<FlashcardRoute>().deckId
+    val state: StateFlow<FlashcardUiState> = deckRepository.getDueCardsForDeck(deckId).take(1)
+        .combine(deckRepository.getDeckById(deckId).take(1))
+        { cards, deck ->
+            FlashcardUiState.Success(cards, deck)
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = FlashcardUiState.Loading
+        )
 
     fun markCardAsGood(card: Card) {
         viewModelScope.launch {
@@ -48,5 +49,5 @@ class FlashcardViewModel @Inject constructor(
 
 sealed interface FlashcardUiState {
     object Loading : FlashcardUiState
-    data class Success(val cards: List<Card>) : FlashcardUiState
+    data class Success(val cards: List<Card>, val deck: Deck) : FlashcardUiState
 }
