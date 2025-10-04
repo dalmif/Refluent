@@ -79,7 +79,17 @@ fun AddCardScreen(
 
     LaunchedEffect(Unit) {
         viewModel.events.collect {
-            snackbarHostState.showSnackbar("Something went wrong while generating with AI. Please check your network connection and try again.")
+            when (it) {
+                AddCardEvent.AiGeneratingFailed -> {
+                    snackbarHostState.showSnackbar("Something went wrong while generating with AI. Please check your network connection and try again.")
+                }
+
+                AddCardEvent.CardNeedAtLeastFrontSide -> {
+                    snackbarHostState.showSnackbar("The front side can’t be empty.")
+                }
+
+                AddCardEvent.CardAddedSuccessfully -> onBackClick()
+            }
         }
     }
     AddCardScreen(
@@ -94,7 +104,6 @@ fun AddCardScreen(
         onBackClick = onBackClick,
         onAddCardButton = {
             viewModel.onAddCardButton()
-            onAddClick()
         },
     )
 }

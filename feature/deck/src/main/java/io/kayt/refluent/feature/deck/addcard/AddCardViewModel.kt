@@ -91,6 +91,10 @@ class AddCardViewModel @Inject constructor(
 
     fun onAddCardButton() {
         val currentState = state.value
+        if (currentState.frontSide.isBlank()){
+            _events.trySend(AddCardEvent.CardNeedAtLeastFrontSide)
+            return
+        }
         viewModelScope.launch {
             if (!isEditingMode) {
                 deckRepository.addNewCard(
@@ -110,6 +114,7 @@ class AddCardViewModel @Inject constructor(
                     comment = currentState.commentRichText.toHtml()
                 )
             }
+            _events.trySend(AddCardEvent.CardAddedSuccessfully)
         }
     }
 
@@ -166,6 +171,8 @@ data class AddCardUiState(
 
 sealed interface AddCardEvent {
     data object AiGeneratingFailed : AddCardEvent
+    data object CardNeedAtLeastFrontSide : AddCardEvent
+    data object CardAddedSuccessfully : AddCardEvent
 }
 
 sealed interface AiGenerate {
