@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -16,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -24,7 +26,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
 import io.kayt.refluent.core.ui.R
 import io.kayt.refluent.core.ui.theme.AppTheme
 
@@ -113,16 +120,35 @@ fun SearchTextFiled(
                 errorIndicatorColor = Color.Transparent,
             )
         )
-        Image(
-            painter = painterResource(R.drawable.search_lay_down),
-            contentDescription = null,
-
+        val noResultLottieComposition by rememberLottieComposition(
+            LottieCompositionSpec.RawRes(R.raw.laydown_animation)
+        )
+        Box(
             modifier = Modifier
                 .height(50.dp)
                 .width(65.dp)
-                .padding(end = 16.dp)
+                .padding(end = 10.dp)
+                .offset(y = 6.dp)
                 .align(Alignment.CenterEnd)
-                .wrapContentSize(align = Alignment.CenterEnd)
-        )
+                .wrapContentSize(align = Alignment.CenterEnd, unbounded = true)
+        ) {
+            LottieAnimation(
+                modifier = Modifier
+                    .height(80.dp)
+                    .width(90.dp),
+                composition = noResultLottieComposition,
+                iterations = LottieConstants.IterateForever,
+                reverseOnRepeat = true
+            )
+        }
     }
+}
+
+@Preview
+@Composable
+private fun SearchTextFiledPreview() {
+    SearchTextFiled(
+        "",
+        {}
+    )
 }
