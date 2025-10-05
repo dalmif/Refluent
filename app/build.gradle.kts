@@ -54,7 +54,7 @@ android {
             signingConfig = internalSigning
             versionNameSuffix = "-${gitVersion.generateVersionName()}"
             applicationIdSuffix = ".beta"
-            manifestPlaceholders[appNameSuffixKey] = " ⍺"
+            manifestPlaceholders[appNameSuffixKey] = " beta"
         }
     }
     compileOptions {
