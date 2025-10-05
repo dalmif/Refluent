@@ -11,4 +11,6 @@ plugins {
     alias(libs.plugins.detekt) apply false
     alias(libs.plugins.sentry) apply false
     alias(libs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.google.service.plugin) apply false
+    alias(libs.plugins.google.crashlytics.plugin) apply false
 }

@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.dalmif.git.versioning)
     alias(libs.plugins.dalmif.android.hilt)
     alias(libs.plugins.dalmif.secrets)
+    alias(libs.plugins.google.service.plugin)
+    alias(libs.plugins.google.crashlytics.plugin)
 }
 
 android {
@@ -11,7 +13,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "io.kayt.refluent"
+        applicationId = "app.refluent"
         minSdk = 28
         targetSdk = 36
         versionCode = 1
@@ -42,6 +44,12 @@ android {
 }
 
 dependencies {
+
+    //Firebase and crashlytics
+    implementation(libs.firebase.bom)
+    implementation(libs.firebase.crashlytics.ndk)
+    implementation(libs.firebase.analytics)
+
     implementation(project(":feature:home"))
     implementation(project(":feature:deck"))
     implementation(project(":core:database"))

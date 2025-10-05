@@ -5,6 +5,7 @@ agp = "8.12.2"
 
 # Kotlin
 composeSwipeableCards = "1.1.4"
+firebaseBom = "34.3.0"
 generativeai = "0.9.0"
 konfettiCompose = "2.0.5"
 kotlin = "2.2.10"
@@ -54,6 +55,8 @@ grgit = "5.3.3"
 javax-inject = "1"
 lottie = "6.6.7"
 sentry-plugin = "5.9.0"
+google-service-plugin = "4.4.3"
+google-crashlytics-plugin = "3.0.6"
 sentry = "8.20.0"
 
 # Test
@@ -75,6 +78,9 @@ androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref =
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomRuntime" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
 compose-swipeable-cards = { module = "com.github.smartword-app:compose-swipeable-cards", version.ref = "composeSwipeableCards" }
+firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-crashlytics-ndk = { module = "com.google.firebase:firebase-crashlytics-ndk" }
 generativeai = { module = "com.google.ai.client.generativeai:generativeai", version.ref = "generativeai" }
 konfetti-compose = { module = "nl.dionsegijn:konfetti-compose", version.ref = "konfettiCompose" }
 kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
@@ -174,6 +180,8 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 grgit = { id = "org.ajoberstar.grgit", version.ref = "grgit" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 sentry = { id = "io.sentry.android.gradle", version.ref = "sentry-plugin" }
+google-service-plugin = { id = "com.google.gms.google-services", version.ref = "google-service-plugin" }
+google-crashlytics-plugin = { id = "com.google.firebase.crashlytics", version.ref = "google-crashlytics-plugin" }
 
 # Convention plugins
 dalmif-android-application = { id = "dalmif.android.application" }
