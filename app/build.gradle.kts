@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.dalmif.android.application)
     alias(libs.plugins.dalmif.android.application.compose)
@@ -16,10 +19,31 @@ android {
         applicationId = "app.refluent"
         minSdk = 28
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = gitVersion.generateVersionCode()
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        create("internal") {
+            val keystorePropertiesFile = rootProject.file("secret/signing/internal.properties")
+            val keystoreProperties = Properties()
+            keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+            keyAlias = keystoreProperties["keyAlias"] as String
+            keyPassword = keystoreProperties["keyPassword"] as String
+            storeFile = rootProject.file("secret/signing/internal.jks")
+            storePassword = keystoreProperties["storePassword"] as String
+        }
+        create("release") {
+            val keystorePropertiesFile = rootProject.file("secret/signing/release.properties")
+            val keystoreProperties = Properties()
+            keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+            keyAlias = keystoreProperties["keyAlias"] as String
+            keyPassword = keystoreProperties["keyPassword"] as String
+            storeFile = rootProject.file("secret/signing/release.jks")
+            storePassword = keystoreProperties["storePassword"] as String
+        }
     }
 
     buildTypes {
@@ -46,9 +70,11 @@ android {
 dependencies {
 
     //Firebase and crashlytics
-    implementation(libs.firebase.bom)
+    implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.crashlytics.ndk)
     implementation(libs.firebase.analytics)
+
+    implementation(libs.androidx.splash)
 
     implementation(project(":feature:home"))
     implementation(project(":feature:deck"))

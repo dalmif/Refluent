@@ -7,6 +7,7 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import dagger.hilt.android.AndroidEntryPoint
 import io.kayt.refluent.core.data.UserRepository
 import io.kayt.refluent.core.ui.misc.provideTTSManager
@@ -20,6 +21,7 @@ class MainActivity : ComponentActivity() {
     lateinit var userRepository: UserRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         enableEdgeToEdge(
             navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, 0x4F000000),
             statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, 0x4F000000)
