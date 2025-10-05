@@ -58,6 +58,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.text.HtmlCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -93,11 +94,20 @@ fun FlashcardScreen(
     viewModel: FlashcardViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val isTtsInitialized by viewModel.isTtsInitialized.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    
+    LaunchedEffect(Unit) {
+        viewModel.initializeTts(context)
+    }
+    
     FlashcardScreen(
         state = state,
         onSwipeRight = viewModel::markCardAsGood,
         onSwipeLeft = viewModel::markCardAsBad,
-        onBackClick = onBackClick
+        onBackClick = onBackClick,
+        onSpeakText = viewModel::speakText,
+        isTtsInitialized = isTtsInitialized
     )
 }
 
@@ -107,6 +117,8 @@ private fun FlashcardScreen(
     onBackClick: () -> Unit,
     onSwipeRight: (Card) -> Unit,
     onSwipeLeft: (Card) -> Unit,
+    onSpeakText: (String) -> Unit,
+    isTtsInitialized: Boolean
 ) {
     val meshState by animateOffsetOnBorder(20_000)
     MeshGradient(
@@ -206,6 +218,8 @@ private fun FlashcardScreen(
                                                             if (flipState.value.first == index) index to !flipState.value.second
                                                             else index to true
                                                     },
+                                                    onSpeakText = onSpeakText,
+                                                    isTtsInitialized = isTtsInitialized
                                                 )
                                             }
                                         }
@@ -419,7 +433,9 @@ private fun SwipeableCard(
     isOnTop: Boolean,
     isFront: Boolean,
     onFlipRequested: () -> Unit,
-    isVisible: Boolean
+    isVisible: Boolean,
+    onSpeakText: (String) -> Unit,
+    isTtsInitialized: Boolean
 ) {
     val targetAngle = if (isFront) 0f else -180f
     val rotation = animateFloatAsState(
@@ -487,8 +503,12 @@ private fun SwipeableCard(
                             contentDescription = "Play audio",
                             modifier = Modifier
                                 .size(24.dp)
-                                .clickable { },
-                            tint = Color(0xFFB2B2B2)
+                                .clickable { 
+                                    if (isTtsInitialized) {
+                                        onSpeakText(card.front)
+                                    }
+                                },
+                            tint = if (isTtsInitialized) Color(0xFFB2B2B2) else Color(0xFFCCCCCC)
                         )
                     }
                 }
