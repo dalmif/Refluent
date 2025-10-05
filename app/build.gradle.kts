@@ -27,32 +27,34 @@ android {
 
     signingConfigs {
         create("internal") {
-            val keystorePropertiesFile = rootProject.file("secret/signing/internal.properties")
+            val keystorePropertiesFile = rootProject.file("secrets/signing/internalsign.properties")
             val keystoreProperties = Properties()
             keystoreProperties.load(FileInputStream(keystorePropertiesFile))
             keyAlias = keystoreProperties["keyAlias"] as String
             keyPassword = keystoreProperties["keyPassword"] as String
-            storeFile = rootProject.file("secret/signing/internal.jks")
-            storePassword = keystoreProperties["storePassword"] as String
-        }
-        create("release") {
-            val keystorePropertiesFile = rootProject.file("secret/signing/release.properties")
-            val keystoreProperties = Properties()
-            keystoreProperties.load(FileInputStream(keystorePropertiesFile))
-            keyAlias = keystoreProperties["keyAlias"] as String
-            keyPassword = keystoreProperties["keyPassword"] as String
-            storeFile = rootProject.file("secret/signing/release.jks")
+            storeFile = rootProject.file("secrets/signing/internal.jks")
             storePassword = keystoreProperties["storePassword"] as String
         }
     }
 
     buildTypes {
+        val internalSigning = signingConfigs.getByName("internal")
+        val appNameSuffixKey = "appNameSuffix"
         release {
-            isMinifyEnabled = false
+            signingConfig = internalSigning
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            manifestPlaceholders[appNameSuffixKey] = ""
+        }
+        debug {
+            signingConfig = internalSigning
+            versionNameSuffix = "-${gitVersion.generateVersionName()}"
+            applicationIdSuffix = ".beta"
+            manifestPlaceholders[appNameSuffixKey] = " ⍺"
         }
     }
     compileOptions {

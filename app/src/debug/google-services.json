@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "97526835021",
+    "project_id": "refluent-fc553",
+    "storage_bucket": "refluent-fc553.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:97526835021:android:0e7078d52bbe4d5e1c7904",
+        "android_client_info": {
+          "package_name": "app.refluent"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAtCwnS1syeuzajpUInx5AVKchh-55xbaM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:97526835021:android:7fa0e88830c816d91c7904",
+        "android_client_info": {
+          "package_name": "app.refluent.beta"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAtCwnS1syeuzajpUInx5AVKchh-55xbaM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
