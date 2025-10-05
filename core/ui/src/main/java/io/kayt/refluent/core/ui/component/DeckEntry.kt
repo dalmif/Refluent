@@ -27,11 +27,13 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.kayt.core.model.Card
 import io.kayt.refluent.core.ui.R
 import io.kayt.refluent.core.ui.misc.LocalTtsManager
+import io.kayt.refluent.core.ui.misc.NoOpTTSManagerScope
 import io.kayt.refluent.core.ui.theme.AppTheme
 import io.kayt.refluent.core.ui.theme.typography.DMSans
 import io.kayt.refluent.core.ui.theme.typography.DMSansVazir
@@ -114,6 +116,18 @@ fun DeckEntry(
                 contentDescription = "Play audio",
                 modifier = Modifier.size(24.dp),
                 tint = if (ttsManager.isAvailable) Color(0xFFB2B2B2) else Color(0xFFCCCCCC)
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun DeckEntryPreview() {
+    AppTheme {
+        NoOpTTSManagerScope {
+            DeckEntry(
+                card = Card(0, "Hello", "Ciao", 12, 3, 0, 0.1f, 0, 0, 0, false, "phonetic", "", "")
             )
         }
     }

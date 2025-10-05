@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.speech.tts.TextToSpeech
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.ProvidedValue
 import androidx.compose.runtime.getValue
@@ -14,8 +15,13 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalContext
 import java.util.Locale
 
-class TTSManager {
-    var isAvailable: Boolean by mutableStateOf(false)
+interface ITTSManager {
+    val isAvailable: Boolean
+    fun speak(text: String)
+}
+
+class TTSManager : ITTSManager {
+    override var isAvailable: Boolean by mutableStateOf(false)
         internal set
 
     private var textToSpeech: TextToSpeech? = null
@@ -31,7 +37,7 @@ class TTSManager {
         }
     }
 
-    fun speak(text: String) {
+    override fun speak(text: String) {
         if (isAvailable && textToSpeech != null) {
             textToSpeech?.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
         }
@@ -44,7 +50,7 @@ class TTSManager {
 }
 
 @Composable
- fun provideTTSManager(): ProvidedValue<TTSManager> {
+fun provideTTSManager(): ProvidedValue<ITTSManager> {
     val context = LocalContext.current
     val manager = remember { TTSManager().apply { initialize(context) } }
     DisposableEffect(Unit) {
@@ -55,5 +61,20 @@ class TTSManager {
     return LocalTtsManager provides manager
 }
 
+private class NoOpTTSManager(override val isAvailable: Boolean) : ITTSManager {
+    override fun speak(text: String) {}
+}
+
+// For using in preview
+@Composable
+fun NoOpTTSManagerScope(isAvailable: Boolean = false, content: @Composable () -> Unit) {
+    CompositionLocalProvider(LocalTtsManager provides remember(isAvailable) {
+        NoOpTTSManager(isAvailable)
+    }) {
+        content()
+    }
+}
+
 @SuppressLint("ComposeCompositionLocalUsage")
-val LocalTtsManager = staticCompositionLocalOf<TTSManager> { error("It's not initialized") }
+val LocalTtsManager =
+    staticCompositionLocalOf<ITTSManager> { error("LocalTtsManager is not provided in the hierarchy") }
