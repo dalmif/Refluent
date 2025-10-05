@@ -247,7 +247,7 @@ private fun HomeScreen(
                                                 Box(
                                                     Modifier
                                                         .fillMaxWidth()
-                                                        .padding(vertical = 20.dp),
+                                                        .padding(vertical = 10.dp),
                                                     contentAlignment = Alignment.Center
                                                 ) {
                                                     TextButton(
