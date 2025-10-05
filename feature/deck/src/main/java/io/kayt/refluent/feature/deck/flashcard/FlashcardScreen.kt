@@ -79,6 +79,7 @@ import io.kayt.refluent.core.ui.component.MeshGradient
 import io.kayt.refluent.core.ui.component.animateOffsetOnBorder
 import io.kayt.refluent.core.ui.component.button.SecondaryBigButton
 import io.kayt.refluent.core.ui.component.fadingEdges
+import io.kayt.refluent.core.ui.misc.LocalTtsManager
 import io.kayt.refluent.core.ui.theme.AppTheme
 import io.kayt.refluent.core.ui.theme.typography.DMSansVazir
 import nl.dionsegijn.konfetti.compose.KonfettiView
@@ -97,20 +98,12 @@ fun FlashcardScreen(
     viewModel: FlashcardViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val isTtsInitialized by viewModel.isTtsInitialized.collectAsStateWithLifecycle()
-    val context = LocalContext.current
-    
-    LaunchedEffect(Unit) {
-        viewModel.initializeTts(context)
-    }
-    
+
     FlashcardScreen(
         state = state,
         onSwipeRight = viewModel::markCardAsGood,
         onSwipeLeft = viewModel::markCardAsBad,
-        onBackClick = onBackClick,
-        onSpeakText = viewModel::speakText,
-        isTtsInitialized = isTtsInitialized
+        onBackClick = onBackClick
     )
 }
 
@@ -120,8 +113,6 @@ private fun FlashcardScreen(
     onBackClick: () -> Unit,
     onSwipeRight: (Card) -> Unit,
     onSwipeLeft: (Card) -> Unit,
-    onSpeakText: (String) -> Unit,
-    isTtsInitialized: Boolean
 ) {
     val meshState by animateOffsetOnBorder(20_000)
     MeshGradient(
@@ -220,9 +211,7 @@ private fun FlashcardScreen(
                                                         flipState.value =
                                                             if (flipState.value.first == index) index to !flipState.value.second
                                                             else index to true
-                                                    },
-                                                    onSpeakText = onSpeakText,
-                                                    isTtsInitialized = isTtsInitialized
+                                                    }
                                                 )
                                             }
                                         }
@@ -437,8 +426,6 @@ private fun SwipeableCard(
     isFront: Boolean,
     onFlipRequested: () -> Unit,
     isVisible: Boolean,
-    onSpeakText: (String) -> Unit,
-    isTtsInitialized: Boolean
 ) {
     val targetAngle = if (isFront) 0f else -180f
     val rotation = animateFloatAsState(
@@ -500,17 +487,15 @@ private fun SwipeableCard(
                         )
 
                         Spacer(modifier = Modifier.width(8.dp))
-
+                        val ttfManager = LocalTtsManager.current
                         Box(
                             modifier = Modifier
                                 .size(40.dp)
                                 .clickable(
                                     interactionSource = remember { MutableInteractionSource() },
                                     indication = ripple(radius = 20.dp)
-                                ) { 
-                                    if (isTtsInitialized) {
-                                        onSpeakText(card.front)
-                                    }
+                                ) {
+                                    ttfManager.speak(card.front)
                                 },
                             contentAlignment = Alignment.Center
                         ) {
@@ -518,7 +503,7 @@ private fun SwipeableCard(
                                 painter = painterResource(R.drawable.ic_light_sound_wave),
                                 contentDescription = "Play audio",
                                 modifier = Modifier.size(24.dp),
-                                tint = if (isTtsInitialized) Color(0xFFB2B2B2) else Color(0xFFCCCCCC)
+                                tint = if (ttfManager.isAvailable) Color(0xFFB2B2B2) else Color(0xFFCCCCCC)
                             )
                         }
                     }

@@ -358,9 +358,9 @@ private fun HomeScreen(
                                                 Row {
                                                     DeckEntry(
                                                         card = card.card,
-                                                        modifier = Modifier.fillMaxWidth()
+                                                        modifier = Modifier.weight(1f).fillMaxWidth()
                                                     )
-                                                    Spacer(Modifier.width(40.dp))
+                                                    Spacer(Modifier.width(30.dp))
                                                 }
                                                 Box(
                                                     modifier = Modifier

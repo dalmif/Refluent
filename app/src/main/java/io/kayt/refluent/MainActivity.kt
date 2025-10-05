@@ -6,8 +6,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.CompositionLocalProvider
 import dagger.hilt.android.AndroidEntryPoint
 import io.kayt.refluent.core.data.UserRepository
+import io.kayt.refluent.core.ui.misc.provideTTSManager
 import io.kayt.refluent.core.ui.theme.AppTheme
 import javax.inject.Inject
 
@@ -25,7 +27,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             AppTheme {
-                MainUi(isLoggedIn = userRepository.getUsername() != null)
+                CompositionLocalProvider(provideTTSManager()) {
+                    MainUi(isLoggedIn = userRepository.getUsername() != null)
+                }
             }
         }
     }
