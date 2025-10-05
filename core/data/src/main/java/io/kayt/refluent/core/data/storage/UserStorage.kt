@@ -5,7 +5,6 @@ import androidx.core.content.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
-
 class UserStorage @Inject constructor(@ApplicationContext context: Context) {
 
     private val sharedPreferences = context.getSharedPreferences("User", Context.MODE_PRIVATE)

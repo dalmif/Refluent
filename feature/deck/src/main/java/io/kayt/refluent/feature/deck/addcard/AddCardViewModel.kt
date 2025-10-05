@@ -91,7 +91,7 @@ class AddCardViewModel @Inject constructor(
 
     fun onAddCardButton() {
         val currentState = state.value
-        if (currentState.frontSide.isBlank()){
+        if (currentState.frontSide.isBlank()) {
             _events.trySend(AddCardEvent.CardNeedAtLeastFrontSide)
             return
         }
@@ -104,8 +104,7 @@ class AddCardViewModel @Inject constructor(
                     phonetic = phonetic.value ?: "",
                     comment = currentState.commentRichText.toHtml()
                 )
-            }
-            else {
+            } else {
                 deckRepository.updateCard(
                     cardId = route.editingCardId!!,
                     frontSide = currentState.frontSide,
@@ -128,11 +127,9 @@ class AddCardViewModel @Inject constructor(
                     generativeRepository.generateExampleSentences(frontSide)
                 }
 
-
                 is AiGenerate.MakeDefinition -> withLoading(1) {
                     generativeRepository.generateDefinition(frontSide)
                 }
-
 
                 is AiGenerate.Custom -> {
                     TODO("Not yet implemented")

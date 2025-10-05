@@ -72,7 +72,8 @@ fun DeckEntry(
                         Placeholder(
                             17.sp, 17.sp,
                             PlaceholderVerticalAlign.Center
-                        ), {
+                        ),
+                        {
                             Icon(
                                 painter = painterResource(R.drawable.icon_sound_wave),
                                 contentDescription = null,
@@ -80,7 +81,8 @@ fun DeckEntry(
                                     .height(90.dp)
                                     .width(40.dp),
                             )
-                        })
+                        }
+                    )
                 ),
                 style = TextStyle(
                     fontFamily = DMSans,

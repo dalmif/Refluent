@@ -1,3 +1,5 @@
+@file:Suppress("MaxLineLength")
+
 package io.kayt.refluent.core.database.dao
 
 import androidx.room.Dao
@@ -28,10 +30,10 @@ interface DeckDao {
 
     @Delete
     suspend fun delete(deck: DeckEntity)
-    
+
     @Query("DELETE FROM decks WHERE uid = :deckId")
     suspend fun deleteDeckById(deckId: Long)
-    
+
     @Query("DELETE FROM cards WHERE deckOwnerId = :deckId")
     suspend fun deleteCardsByDeckId(deckId: Long)
 
@@ -43,7 +45,7 @@ interface DeckDao {
 
     @Delete
     suspend fun deleteCard(card: CardEntity)
-    
+
     @Query("DELETE FROM cards WHERE uid = :cardId")
     suspend fun deleteCardById(cardId: Long)
 
@@ -55,11 +57,10 @@ interface DeckDao {
 
     @Query(
         "SELECT d.uid, d.name, d.color1, d.color2, COUNT(c.uid) AS totalCards, " +
-                "SUM(CASE WHEN c.nextReview IS NOT NULL AND c.nextReview <= (CAST(strftime('%s','now') AS INTEGER) * 1000) + 1000 THEN 1 ELSE 0 END) AS dueCards " +
-                "FROM decks AS d LEFT JOIN cards AS c ON c.deckOwnerId = d.uid GROUP BY d.uid, d.name ORDER BY d.createdDateTime ASC;"
+            "SUM(CASE WHEN c.nextReview IS NOT NULL AND c.nextReview <= (CAST(strftime('%s','now') AS INTEGER) * 1000) + 1000 THEN 1 ELSE 0 END) AS dueCards " +
+            "FROM decks AS d LEFT JOIN cards AS c ON c.deckOwnerId = d.uid GROUP BY d.uid, d.name ORDER BY d.createdDateTime ASC;"
     )
     fun getDeckWithCardCounts(): Flow<List<DeckWithStats>>
-
 
     @Query(
         """
@@ -102,7 +103,8 @@ interface DeckDao {
     fun getDeckById(deckId: Long): Flow<DeckWithStats>
 
     @Transaction
-    @Query("""
+    @Query(
+        """
         SELECT * FROM cards
         WHERE frontSide LIKE '%' || :query || '%' COLLATE NOCASE
            OR backSide  LIKE '%' || :query || '%' COLLATE NOCASE
@@ -115,7 +117,7 @@ interface DeckDao {
                 ELSE 4
             END,
             createdDateTime DESC
-    """)
+    """
+    )
     suspend fun searchCardsWithDeck(query: String): List<CardWithDeck>
-
 }

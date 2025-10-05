@@ -63,7 +63,6 @@ fun Modifier.fadingEdges(
         }
     }
 
-
 fun Modifier.fadingEdges(
     scrollState: ScrollState,
     topEdgeHeight: Dp = 72.dp,

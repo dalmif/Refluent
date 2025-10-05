@@ -282,7 +282,7 @@ fun HeadlessTopmostAppBar(
     contentScrollBehaviour: TopmostAppBarContentScrollBehaviour = TopmostAppBarContentScrollBehaviour.Fixed,
     draggable: Boolean = true,
     snapInDraggableArea: Boolean = true,
-    minHeight : Dp = Dp.Unspecified,
+    minHeight: Dp = Dp.Unspecified,
     content: @Composable (paddings: TopmostAppBarPaddingValues, collapsedFraction: Float) -> Unit,
 ) = FreeformTopmostAppBar(
     state = state,
@@ -409,8 +409,11 @@ private fun FreeformTopmostAppBar(
                             measurable.measure(
                                 constraints.copy(
                                     minHeight =
-                                        if (ignoreMinHeight) requestedMinHeight.roundToPx() else
-                                            TopmostAppBarDefaults.height.roundToPx() + windowTopInset.roundToPx()
+                                    if (ignoreMinHeight) {
+                                        requestedMinHeight.roundToPx()
+                                    } else {
+                                        TopmostAppBarDefaults.height.roundToPx() + windowTopInset.roundToPx()
+                                    }
                                 )
                             )
                         // update the offset whenever the layout updated
@@ -442,8 +445,11 @@ private fun FreeformTopmostAppBar(
                         remember {
                             TopmostAppBarPaddingValues(
                                 windowPadding = windowPadding,
-                                topAppbarPadding = if (ignoreMinHeight) PaddingValues(top = requestedMinHeight)
-                                else PaddingValues(top = windowTopInset + TopmostAppBarDefaults.height)
+                                topAppbarPadding = if (ignoreMinHeight) {
+                                    PaddingValues(top = requestedMinHeight)
+                                } else {
+                                    PaddingValues(top = windowTopInset + TopmostAppBarDefaults.height)
+                                }
                             )
                         },
                         appBarState.collapsedFraction
@@ -454,12 +460,12 @@ private fun FreeformTopmostAppBar(
                 Column {
                     TopmostAppBarLayout(
                         modifier =
-                            Modifier
-                                .background(TopmostAppBarDefaults.containerColor.copy(alpha = containerColorAlpha))
-                                .windowInsetsPadding(TopmostAppBarDefaults.windowInsets)
-                                // clip after padding so we don't show the title over the inset area
-                                .clipToBounds()
-                                .heightIn(max = TopmostAppBarDefaults.height),
+                        Modifier
+                            .background(TopmostAppBarDefaults.containerColor.copy(alpha = containerColorAlpha))
+                            .windowInsetsPadding(TopmostAppBarDefaults.windowInsets)
+                            // clip after padding so we don't show the title over the inset area
+                            .clipToBounds()
+                            .heightIn(max = TopmostAppBarDefaults.height),
                         scrolledOffset = { 0f },
                         navigationIconContentColor = TopmostAppBarDefaults.navigationIconContentColor,
                         titleContentColor = TopmostAppBarDefaults.titleContentColor,
@@ -829,9 +835,9 @@ private fun TopmostAppBarLayout(
                         // is long. In this case, offset to the left.
                         baseX +=
                             (
-                                    (constraints.maxWidth - actionWidth) -
-                                            (baseX + titlePlaceable.width)
-                                    )
+                                (constraints.maxWidth - actionWidth) -
+                                    (baseX + titlePlaceable.width)
+                                )
                     }
                     baseX.coerceIn(
                         TopmostAppBarDefaults.topAppBarTitleInset.roundToPx(),

@@ -17,7 +17,8 @@ object DatabaseModule {
     fun provideDatabase(@ApplicationContext context: Context): AppDatabase {
         return Room.databaseBuilder(
             context,
-            AppDatabase::class.java, "refluent-db"
+            AppDatabase::class.java,
+            "refluent-db"
         ).build()
     }
 

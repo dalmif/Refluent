@@ -3,13 +3,13 @@ package io.kayt.refluent.core.data.utils
 object CmuDictIpa {
 
     data class Options(
-        val cotCaughtMerged: Boolean = false,   // AO→ɑ if true
-        val showSyllableDots: Boolean = false   // insert · before each new vowel group
+        val cotCaughtMerged: Boolean = false, // AO→ɑ if true
+        val showSyllableDots: Boolean = false // insert · before each new vowel group
     )
 
     // Phones considered vowels in CMUdict (base without stress digit)
     private val VOWELS = setOf(
-        "AA","AE","AH","AO","AW","AY","EH","ER","EY","IH","IY","OW","OY","UH","UW","AX"
+        "AA", "AE", "AH", "AO", "AW", "AY", "EH", "ER", "EY", "IH", "IY", "OW", "OY", "UH", "UW", "AX"
     )
 
     // Base ARPABET (no stress digits) → IPA (default mapping; AH/ER handled dynamically)
@@ -17,7 +17,7 @@ object CmuDictIpa {
         // Vowels (context-free; AH/ER handled below)
         "AA" to "ɑ",
         "AE" to "æ",
-        "AO" to "ɔ",       // maybe ɑ if cotCaughtMerged=true
+        "AO" to "ɔ", // maybe ɑ if cotCaughtMerged=true
         "AW" to "aʊ",
         "AY" to "aɪ",
         "EH" to "ɛ",
@@ -38,8 +38,8 @@ object CmuDictIpa {
         "SH" to "ʃ", "T" to "t", "TH" to "θ", "V" to "v",
         "W" to "w", "Y" to "j", "Z" to "z", "ZH" to "ʒ",
         // Extras sometimes seen
-        "DX" to "ɾ",       // flap
-        "Q"  to "ʔ"        // glottal stop
+        "DX" to "ɾ", // flap
+        "Q" to "ʔ" // glottal stop
     )
 
     private val TOKEN_RE = Regex("^([A-Z]{1,3})([0-2])?$")
@@ -47,6 +47,7 @@ object CmuDictIpa {
     fun toIpa(arpabet: String): String {
         return toIpa(arpabet, Options())
     }
+
     /**
      * Convert a CMUdict ARPABET string to IPA.
      * Example input: "K AH0 M P Y UW1 T ER0"
@@ -61,7 +62,8 @@ object CmuDictIpa {
             val m = TOKEN_RE.matchEntire(tok)
                 ?: run { // unknown token; pass through as-is
                     if (out.isNotEmpty()) out.append(' ')
-                    out.append(tok); continue
+                    out.append(tok)
+                    continue
                 }
 
             val base = m.groupValues[1]

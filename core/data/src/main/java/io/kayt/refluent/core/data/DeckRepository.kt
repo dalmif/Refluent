@@ -34,9 +34,9 @@ class DeckRepository @Inject constructor(
         // knobs you can tweak
         private const val MIN_EASE = 1.30f
         private const val MAX_EASE = 2.50f
-        private const val LAPSE_PENALTY = 0.25f          // stronger penalty on fails
-        private const val INTERVAL_MODIFIER = 0.85f      // 15% sooner globally
-        private const val EASY_BONUS = 1.10f             // small push for perfect recall
+        private const val LAPSE_PENALTY = 0.25f // stronger penalty on fails
+        private const val INTERVAL_MODIFIER = 0.85f // 15% sooner globally
+        private const val EASY_BONUS = 1.10f // small push for perfect recall
 
         // "learning" steps for very early reviews (sub-day). Interval field will be 0 for these.
         private const val STEP1_MINUTES = 10L
@@ -140,7 +140,6 @@ class DeckRepository @Inject constructor(
             // First get the existing card to preserve SRS fields
             val existingCard = deckDataAccess.getCardById(cardId)
 
-            println("mmd here it came existingCard: $existingCard card id : $cardId")
             if (existingCard != null) {
                 deckDataAccess.updateCard(
                     existingCard.copy(
@@ -162,6 +161,7 @@ class DeckRepository @Inject constructor(
 
     class AbortFlowException : Exception()
 
+    @Suppress("EmptyCatchBlock", "SwallowedException")
     fun getDeckById(deckId: Long): Flow<Deck> = channelFlow {
         while (currentCoroutineContext().isActive) {
             try {
@@ -192,6 +192,7 @@ class DeckRepository @Inject constructor(
         }
         .flowOn(Dispatchers.IO)
 
+    @Suppress("EmptyCatchBlock", "SwallowedException")
     fun getAllDeck(): Flow<List<Deck>> = channelFlow {
         send(Unit)
         while (currentCoroutineContext().isActive) {
@@ -346,7 +347,9 @@ class DeckRepository @Inject constructor(
 
                         val withEasyBonus = if (quality == 5) {
                             (base * EASY_BONUS).roundToInt().coerceAtLeast(1)
-                        } else base
+                        } else {
+                            base
+                        }
 
                         nextIntervalDays = withEasyBonus
                         nextReviewAt = now + nextIntervalDays * millisPerDay
@@ -363,8 +366,8 @@ class DeckRepository @Inject constructor(
                 comment = card.comment,
                 isArchived = card.isArchived,
                 tags = card.tags,
-                nextReview = nextReviewAt,     // supports sub-day learning steps
-                interval = nextIntervalDays,   // will be 0 for sub-day steps
+                nextReview = nextReviewAt, // supports sub-day learning steps
+                interval = nextIntervalDays, // will be 0 for sub-day steps
                 repetition = nextRepetition,
                 easeFactor = newEase,
                 lastReviewed = now,
@@ -374,5 +377,4 @@ class DeckRepository @Inject constructor(
             deckDataAccess.updateCard(updatedEntity)
         }
     }
-
 }

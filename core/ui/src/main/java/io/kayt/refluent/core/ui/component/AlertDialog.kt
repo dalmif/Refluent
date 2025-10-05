@@ -51,7 +51,6 @@ fun AlertDialog(
                 tonalElevation = AlertDialogDefaults.TonalElevation
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
-
                     Text(
                         text = title,
                         textAlign = TextAlign.Start,
@@ -112,7 +111,7 @@ private fun AlertDialogPreview() {
         AlertDialog(
             title = "Basic dialog title",
             description = "A dialog is a type of modal window that appears in front of app content to provide " +
-                    "critical information, or prompt for a decision to be made.",
+                "critical information, or prompt for a decision to be made.",
             primaryButtonText = "Action 1",
             secondaryButtonText = "Action 2",
             primaryButtonAction = {},

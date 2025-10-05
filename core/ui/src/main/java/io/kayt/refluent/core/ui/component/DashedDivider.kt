@@ -25,7 +25,8 @@ fun DashedDivider(
         Stroke(
             width = thickness.toPx(),
             pathEffect = PathEffect.dashPathEffect(
-                floatArrayOf(dashWidth.toPx(), gapWidth.toPx()), 0f
+                floatArrayOf(dashWidth.toPx(), gapWidth.toPx()),
+                0f
             )
         )
     }

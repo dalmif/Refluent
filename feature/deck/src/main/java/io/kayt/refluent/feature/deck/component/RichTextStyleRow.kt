@@ -34,9 +34,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mohamedrejeb.richeditor.annotation.ExperimentalRichTextApi
 import com.mohamedrejeb.richeditor.model.RichTextState
-//import io.kayt.refluent.core.ui.theme.typography.MixedFontBold
-//import io.kayt.refluent.core.ui.theme.typography.MixedFontBoldItalic
-//import io.kayt.refluent.core.ui.theme.typography.MixedFontRegularItalic
+// import io.kayt.refluent.core.ui.theme.typography.MixedFontBold
+// import io.kayt.refluent.core.ui.theme.typography.MixedFontBoldItalic
+// import io.kayt.refluent.core.ui.theme.typography.MixedFontRegularItalic
 
 @OptIn(ExperimentalRichTextApi::class)
 @Composable

@@ -22,7 +22,6 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import io.kayt.refluent.core.ui.theme.AppTheme
 
-
 @Composable
 fun SecondaryButton(
     onClick: () -> Unit,
@@ -49,13 +48,12 @@ fun SecondaryButton(
     )
 }
 
-
 @Composable
 fun SecondaryBigButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    background : Color = AppTheme.colors.background,
-    height : Dp = 61.dp,
+    background: Color = AppTheme.colors.background,
+    height: Dp = 61.dp,
     content: @Composable RowScope.() -> Unit,
 ) {
     Button(

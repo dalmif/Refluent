@@ -67,7 +67,6 @@ import io.kayt.refluent.feature.deck.component.RichTextStyleRow
 
 @Composable
 fun AddCardScreen(
-    onAddClick: () -> Unit,
     onBackClick: () -> Unit,
     viewModel: AddCardViewModel = hiltViewModel(),
 ) {
@@ -81,7 +80,9 @@ fun AddCardScreen(
         viewModel.events.collect {
             when (it) {
                 AddCardEvent.AiGeneratingFailed -> {
-                    snackbarHostState.showSnackbar("Something went wrong while generating with AI. Please check your network connection and try again.")
+                    snackbarHostState.showSnackbar(
+                        "Something went wrong while generating with AI. Please check your network connection and try again."
+                    )
                 }
 
                 AddCardEvent.CardNeedAtLeastFrontSide -> {
@@ -249,10 +250,11 @@ private fun AddCardScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        if (isEditingMode)
+                        if (isEditingMode) {
                             "Update Card"
-                        else
+                        } else {
                             "Add Card"
+                        }
                     )
                 }
             }
@@ -368,7 +370,6 @@ private fun RowScope.SideTextColumn(
         }
     }
 }
-
 
 /**
  * VisualTransformation that appends a non-editable, non-selectable suffix.

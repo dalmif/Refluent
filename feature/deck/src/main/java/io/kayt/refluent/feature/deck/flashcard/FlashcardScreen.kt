@@ -27,7 +27,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -59,9 +58,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.platform.LocalContext
 import androidx.core.text.HtmlCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -134,7 +131,6 @@ private fun FlashcardScreen(
                 listOf(Color(colors.first), Color(colors.second))
             } else {
                 listOf(Color(0xFFFDDCAA), Color(0xFFECDBDA))
-
             }
         }
         Scaffold(containerColor = Color.Transparent) { innerPadding ->
@@ -178,7 +174,10 @@ private fun FlashcardScreen(
                                             .weight(1f)
                                             .padding(top = 40.dp),
                                         state = swipeableState,
-                                        properties = SwipeableCardsProperties(padding = 0.dp, stackedCardsOffset = 0.dp),
+                                        properties = SwipeableCardsProperties(
+                                            padding = 0.dp,
+                                            stackedCardsOffset = 0.dp
+                                        ),
                                         factors = SwipeableCardsFactors(
 //                                            cardOffsetCalculation = { index, _, _ -> Offset(x = 0f, y = (-1f).pow(index % 2) * index.toFloat() * density.run { 4.dp.roundToPx() }) }
                                             cardOffsetCalculation = { index, _, _ -> Offset.Zero }
@@ -196,10 +195,12 @@ private fun FlashcardScreen(
                                         }
                                     ) {
                                         items(state.cards) { card, index, offset ->
-                                            Box(modifier = Modifier.graphicsLayer{
-                                                rotationZ = if (swipeableState.currentCardIndex == index) 0f else (-1f).pow(index % 2) * 1f
-                                                scaleY = if (index == swipeableState.currentCardIndex) 1f else 1.04f
-                                            }) {
+                                            Box(
+                                                modifier = Modifier.graphicsLayer {
+                                                    rotationZ = if (swipeableState.currentCardIndex == index) 0f else (-1f).pow(index % 2) * 1f
+                                                    scaleY = if (index == swipeableState.currentCardIndex) 1f else 1.04f
+                                                }
+                                            ) {
                                                 SwipeableCard(
                                                     card = card,
                                                     isOnTop = swipeableState.currentCardIndex >= index,
@@ -209,8 +210,11 @@ private fun FlashcardScreen(
                                                         ?: true,
                                                     onFlipRequested = {
                                                         flipState.value =
-                                                            if (flipState.value.first == index) index to !flipState.value.second
-                                                            else index to true
+                                                            if (flipState.value.first == index) {
+                                                                index to !flipState.value.second
+                                                            } else {
+                                                                index to true
+                                                            }
                                                     }
                                                 )
                                             }
@@ -247,8 +251,11 @@ private fun FlashcardScreen(
                                                 shadow = true,
                                                 onClick = {
                                                     flipState.value =
-                                                        if (flipState.value.first == swipeableState.currentCardIndex) swipeableState.currentCardIndex to !flipState.value.second
-                                                        else swipeableState.currentCardIndex to true
+                                                        if (flipState.value.first == swipeableState.currentCardIndex) {
+                                                            swipeableState.currentCardIndex to !flipState.value.second
+                                                        } else {
+                                                            swipeableState.currentCardIndex to true
+                                                        }
                                                 }
                                             )
                                             Spacer(Modifier.width(30.dp))
@@ -353,7 +360,9 @@ private fun FlashcardScreen(
                                         Spacer(modifier = Modifier.height(20.dp))
                                         Text(
                                             "Well done!",
-                                            style = AppTheme.typography.headline1.copy(fontWeight = FontWeight.SemiBold),
+                                            style = AppTheme.typography.headline1.copy(
+                                                fontWeight = FontWeight.SemiBold
+                                            ),
                                             color = AppTheme.colors.textPrimary
                                         )
                                         Text(
@@ -377,9 +386,11 @@ private fun FlashcardScreen(
                                             )
                                             Spacer(Modifier.width(15.dp))
                                             Text(
-                                                motivationalPhrases[Random.nextInt(
-                                                    motivationalPhrases.size
-                                                )],
+                                                motivationalPhrases[
+                                                    Random.nextInt(
+                                                        motivationalPhrases.size
+                                                    )
+                                                ],
                                                 style = AppTheme.typography.body1,
                                                 color = AppTheme.colors.textPrimary.copy(alpha = 0.8f)
                                             )
@@ -578,7 +589,6 @@ private fun SwipeableCard(
                     }
                 }
             }
-
         }
     }
 }

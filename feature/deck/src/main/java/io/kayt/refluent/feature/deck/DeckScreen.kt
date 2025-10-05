@@ -110,7 +110,9 @@ private fun DeckScreen(
         if (state is DeckUiState.Success) {
             val lazyColumnState = rememberLazyListState()
             val topmostAppBarState =
-                rememberTopmostAppBarState(canScroll = { lazyColumnState.canScrollForward || lazyColumnState.canScrollBackward })
+                rememberTopmostAppBarState(
+                    canScroll = { lazyColumnState.canScrollForward || lazyColumnState.canScrollBackward }
+                )
             Scaffold { innerPadding ->
                 Box(
                     Modifier
@@ -227,10 +229,14 @@ private fun DeckScreen(
                                                 timePointingIcon,
                                                 transitionSpec = {
                                                     slideInHorizontally { it } togetherWith slideOutHorizontally { it }
-                                                }) {
+                                                }
+                                            ) {
                                                 Image(
-                                                    if (!it) painterResource(R.drawable.brainstorming)
-                                                    else painterResource(R.drawable.no_card_yet),
+                                                    if (!it) {
+                                                        painterResource(R.drawable.brainstorming)
+                                                    } else {
+                                                        painterResource(R.drawable.no_card_yet)
+                                                    },
                                                     null,
                                                     modifier = Modifier.size(80.dp)
                                                 )
@@ -238,8 +244,11 @@ private fun DeckScreen(
                                         }
                                     }
                                     Text(
-                                        text = if (state.deck.totalCards == 0 || state.deck.dueCards > 0) "due for reviews"
-                                        else "All caught up!",
+                                        text = if (state.deck.totalCards == 0 || state.deck.dueCards > 0) {
+                                            "due for reviews"
+                                        } else {
+                                            "All caught up!"
+                                        },
                                         style = AppTheme.typography.body1,
                                         modifier = Modifier.sharedElement(
                                             rememberSharedContentState(
@@ -330,7 +339,8 @@ private fun DeckScreen(
                                     )
                                 )
                                 .clip(RoundedCornerShape(25.dp))
-                                .background(AppTheme.colors.background)) {
+                                .background(AppTheme.colors.background)
+                        ) {
                             if (state.cards.isNotEmpty()) {
                                 LazyColumn(
                                     state = lazyColumnState,

@@ -11,7 +11,6 @@ import io.kayt.refluent.core.ui.R
 import android.graphics.Typeface as AndroidTypeface
 import android.graphics.fonts.Font as AndroidFont
 
-
 var DMSansVazir: FontFamily? = null
 
 val LifeSaver = FontFamily(

@@ -5,12 +5,11 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import kotlinx.serialization.Serializable
 
-
 @Serializable
 data class FlashcardRoute(val deckId: Long)
 
 fun NavGraphBuilder.flashCard(
-    onBackClick : () -> Unit,
+    onBackClick: () -> Unit,
 ) {
     composable<FlashcardRoute> {
         FlashcardScreen(

@@ -35,14 +35,9 @@ fun NavGraphBuilder.addCard(navController: NavController) {
             sheetState = state,
             onDismissRequest = {
                 navController.popBackStack()
-            }) {
+            }
+        ) {
             AddCardScreen(
-                onAddClick = {
-                    coroutineScope.launch {
-                        state.hide()
-                        navController.popBackStack()
-                    }
-                },
                 onBackClick = {
                     coroutineScope.launch {
                         state.hide()

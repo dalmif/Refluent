@@ -67,7 +67,7 @@ data class GradientPoint(
     val scaleY: Float
 )
 
-class PointCollectorDsl() {
+class PointCollectorDsl {
     internal val points = mutableListOf<GradientPoint>()
     fun point(x: Float, y: Float, color: Color, scale: Float = 1f) {
         points.add(GradientPoint(x, y, color, scale, scale))

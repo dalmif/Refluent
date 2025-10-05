@@ -15,6 +15,7 @@ class GenerativeRepository @Inject constructor() {
         apiKey = apiKey
     )
 
+    @Suppress("UseCheckOrError")
     suspend fun generateExampleSentences(word: String): Result<String> {
         val prompt = """
             Generate 3 example sentences using the word '$word'. Rules:
@@ -34,7 +35,7 @@ class GenerativeRepository @Inject constructor() {
             <li>Medium sentence with <b>word</b></li>
             <li>Medium sentence with <b>word</b></li>
             </ol>
-            """.trimIndent()
+        """.trimIndent()
         return runCatching {
             val response = generativeModel.generateContent(prompt)
             response.text
@@ -44,6 +45,7 @@ class GenerativeRepository @Inject constructor() {
         }.exemptCancellation()
     }
 
+    @Suppress("UseCheckOrError")
     suspend fun generateDefinition(word: String): Result<String> {
         val prompt = """
                 Define the word '$word'. Rules:
@@ -74,7 +76,7 @@ class GenerativeRepository @Inject constructor() {
                 <br>
                 <i>Synonyms:</i> word1, word2, word3
                 </div>
-                """.trimIndent()
+        """.trimIndent()
         return runCatching {
             val response = generativeModel.generateContent(prompt)
             response.text

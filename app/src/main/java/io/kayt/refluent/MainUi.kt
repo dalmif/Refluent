@@ -26,7 +26,7 @@ import io.kayt.refluent.feature.welcome.welcome
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun MainUi(
-    isLoggedIn : Boolean
+    isLoggedIn: Boolean
 ) {
     val navController = rememberNavController()
     SharedTransitionLayout {
@@ -35,7 +35,7 @@ fun MainUi(
         ) {
             NavHost(
                 navController = navController,
-                startDestination = if(!isLoggedIn) WelcomeRoute else HomeRoute
+                startDestination = if (!isLoggedIn) WelcomeRoute else HomeRoute
             ) {
                 home(
                     onAddDeckClick = {
@@ -77,4 +77,3 @@ fun MainUi(
         }
     }
 }
-

@@ -30,7 +30,7 @@ class TTSManager : ITTSManager {
             if (status == TextToSpeech.SUCCESS) {
                 val result = textToSpeech?.setLanguage(Locale.ENGLISH)
                 isAvailable = result != TextToSpeech.LANG_MISSING_DATA &&
-                        result != TextToSpeech.LANG_NOT_SUPPORTED
+                    result != TextToSpeech.LANG_NOT_SUPPORTED
             } else {
                 isAvailable = false
             }
@@ -62,15 +62,18 @@ fun provideTTSManager(): ProvidedValue<ITTSManager> {
 }
 
 private class NoOpTTSManager(override val isAvailable: Boolean) : ITTSManager {
+    @Suppress("EmptyFunctionBlock")
     override fun speak(text: String) {}
 }
 
 // For using in preview
 @Composable
 fun NoOpTTSManagerScope(isAvailable: Boolean = false, content: @Composable () -> Unit) {
-    CompositionLocalProvider(LocalTtsManager provides remember(isAvailable) {
-        NoOpTTSManager(isAvailable)
-    }) {
+    CompositionLocalProvider(
+        LocalTtsManager provides remember(isAvailable) {
+            NoOpTTSManager(isAvailable)
+        }
+    ) {
         content()
     }
 }
