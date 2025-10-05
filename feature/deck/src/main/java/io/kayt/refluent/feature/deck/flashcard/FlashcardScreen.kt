@@ -8,6 +8,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,9 +27,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -498,18 +501,26 @@ private fun SwipeableCard(
 
                         Spacer(modifier = Modifier.width(8.dp))
 
-                        Icon(
-                            painter = painterResource(R.drawable.ic_light_sound_wave),
-                            contentDescription = "Play audio",
+                        Box(
                             modifier = Modifier
-                                .size(24.dp)
-                                .clickable { 
+                                .size(40.dp)
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = ripple(radius = 20.dp)
+                                ) { 
                                     if (isTtsInitialized) {
                                         onSpeakText(card.front)
                                     }
                                 },
-                            tint = if (isTtsInitialized) Color(0xFFB2B2B2) else Color(0xFFCCCCCC)
-                        )
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_light_sound_wave),
+                                contentDescription = "Play audio",
+                                modifier = Modifier.size(24.dp),
+                                tint = if (isTtsInitialized) Color(0xFFB2B2B2) else Color(0xFFCCCCCC)
+                            )
+                        }
                     }
                 }
             } else {
