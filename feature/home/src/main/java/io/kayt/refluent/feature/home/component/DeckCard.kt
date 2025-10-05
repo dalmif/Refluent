@@ -1,8 +1,15 @@
 package io.kayt.refluent.feature.home.component
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -16,6 +23,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,6 +36,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,7 +52,9 @@ import io.kayt.refluent.core.ui.component.LocalNavAnimatedVisibilityScope
 import io.kayt.refluent.core.ui.component.LocalSharedTransitionScope
 import io.kayt.refluent.core.ui.theme.AppTheme
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -72,7 +84,7 @@ fun DeckCard(
                 scaleAnim.snapTo(currentValue)
             }
         } else {
-            scaleAnim.animateTo(0f, tween(1000)){
+            scaleAnim.animateTo(0f, tween(1000)) {
                 lastValueOfAnimation.floatValue = value
             }
         }
@@ -105,11 +117,15 @@ fun DeckCard(
                 .padding(start = 21.dp, end = 16.dp)
                 .padding(top = 38.dp, bottom = 22.dp)
         ) {
+            var timePointingIcon by remember { mutableStateOf(false) }
+
             Row(verticalAlignment = Alignment.CenterVertically) {
+
                 Box(Modifier.weight(1f)) {
                     Text(
                         deck.name.uppercase(),
                         style = AppTheme.typography.headline1,
+                        maxLines = 4,
                         modifier = Modifier.sharedElement(
                             rememberSharedContentState(key = "deck_title_$deckId"),
                             animatedVisibilityScope = LocalNavAnimatedVisibilityScope.current
@@ -117,19 +133,40 @@ fun DeckCard(
                     )
                 }
                 Column(
-                    modifier = Modifier.weight(1f),
-                    horizontalAlignment = Alignment.End
+                    horizontalAlignment = Alignment.End,
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Text(
-                        text = deck.dueCards.toString(),
-                        style = AppTheme.typography.subhead,
-                        modifier = Modifier.sharedElement(
+                    Box(
+                        Modifier.sharedElement(
                             rememberSharedContentState(key = "deck_due_cards_$deckId"),
                             animatedVisibilityScope = LocalNavAnimatedVisibilityScope.current
                         )
-                    )
+                    ) {
+                        if (deck.totalCards == 0 || deck.dueCards > 0) {
+                            Text(
+                                text = deck.dueCards.toString(),
+                                style = AppTheme.typography.subhead
+                            )
+                        } else {
+                            AnimatedContent(
+                                timePointingIcon,
+                                transitionSpec = {
+                                    slideInHorizontally { it } + fadeIn() togetherWith
+                                            slideOutHorizontally { it } + fadeOut()
+                                }) {
+                                Image(
+                                    if (!it) painterResource(R.drawable.brainstorming)
+                                    else painterResource(R.drawable.no_card_yet),
+                                    null,
+                                    modifier = Modifier.size(80.dp)
+                                )
+                            }
+                        }
+                    }
                     Text(
-                        text = "due for reviews",
+                        text =
+                            if (deck.totalCards == 0 || deck.dueCards > 0) "due for reviews"
+                            else "All caught up!",
                         style = AppTheme.typography.body1,
                         modifier = Modifier.sharedElement(
                             rememberSharedContentState(key = "deck_due_text_$deckId"),
@@ -152,15 +189,34 @@ fun DeckCard(
                         animatedVisibilityScope = LocalNavAnimatedVisibilityScope.current
                     )
                 )
+                val scope = rememberCoroutineScope()
                 Row(
                     Modifier
                         .clip(CircleShape)
-                        .clickable(onClick = onStudyClick)
+                        .clickable(onClick = {
+                            if (deck.dueCards > 0) {
+                                onStudyClick()
+                            } else {
+                                if (deck.totalCards > 0) {
+                                    scope.launch {
+                                        timePointingIcon = true
+                                        delay(2000)
+                                        timePointingIcon = false
+                                    }
+                                } else {
+                                    // if this is a new deck with no card, clicking this button
+                                    // should treated as clicking the whole
+                                    onClick()
+                                }
+                            }
+                        })
                         .background(Color(0x45F9C959))
                         .padding(vertical = 7.dp, horizontal = 14.dp)
                 ) {
                     Text(
-                        text = "Click to Study",
+                        text = if (deck.dueCards == 0 && deck.totalCards == 0)
+                            "Go to Deck"
+                        else "Let's review",
                         style = AppTheme.typography.body1
                     )
                     Spacer(Modifier.width(3.dp))

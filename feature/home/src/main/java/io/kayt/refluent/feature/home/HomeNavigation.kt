@@ -13,14 +13,16 @@ data object HomeRoute
 fun NavGraphBuilder.home(
     onAddDeckClick: (deckCount : Int) -> Unit,
     onDeckClick: (Long) -> Unit,
-    onDeckEditClick: (Long) -> Unit
+    onDeckEditClick: (Long) -> Unit,
+    onStudyClick : (Long) -> Unit,
 ) {
     composable<HomeRoute> {
         CompositionLocalProvider(LocalNavAnimatedVisibilityScope provides this) {
             HomeScreen(
                 onAddDeckClick = onAddDeckClick,
                 onDeckClick = onDeckClick,
-                onDeckEditClick = onDeckEditClick
+                onDeckEditClick = onDeckEditClick,
+                onStudyClick = onStudyClick
             )
         }
     }

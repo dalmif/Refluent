@@ -1,6 +1,7 @@
 package io.kayt.refluent.feature.deck
 
 import androidx.compose.animation.Animatable
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.EaseOutQuint
@@ -9,8 +10,11 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -38,7 +42,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -71,6 +78,7 @@ import io.kayt.refluent.core.ui.component.rememberTopmostAppBarState
 import io.kayt.refluent.core.ui.theme.AppTheme
 import io.kayt.refluent.core.ui.theme.typography.LifeSaver
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -134,12 +142,14 @@ private fun DeckScreen(
                                 .padding(top = innerPadding.calculateTopPadding())
                                 .padding(top = 38.dp)
                         ) {
+                            var timePointingIcon by remember { mutableStateOf(false) }
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Box(Modifier.weight(1f)) {
                                     Column {
                                         Text(
                                             state.deck.name.uppercase(),
                                             style = AppTheme.typography.headline1,
+                                            maxLines = 4,
                                             modifier = Modifier.sharedElement(
                                                 rememberSharedContentState(
                                                     key = "deck_title_${state.deck.id}"
@@ -195,24 +205,41 @@ private fun DeckScreen(
                                             }
                                         }
                                     }
-                                    Text(
-                                        text = state.deck.dueCards.toString(),
-                                        style = AppTheme.typography.subhead,
-                                        color = color.value,
-                                        modifier = Modifier
-                                            .sharedElement(
-                                                rememberSharedContentState(
-                                                    key = "deck_due_cards_${state.deck.id}"
-                                                ),
-                                                animatedVisibilityScope = LocalNavAnimatedVisibilityScope.current
+                                    Box(
+                                        Modifier.sharedElement(
+                                            rememberSharedContentState(key = "deck_due_cards_${state.deck.id}"),
+                                            animatedVisibilityScope = LocalNavAnimatedVisibilityScope.current
+                                        )
+                                    ) {
+                                        if (state.deck.totalCards == 0 || state.deck.dueCards > 0) {
+                                            Text(
+                                                text = state.deck.dueCards.toString(),
+                                                style = AppTheme.typography.subhead,
+                                                color = color.value,
+                                                modifier = Modifier
+                                                    .graphicsLayer {
+                                                        scaleX = scale.value
+                                                        scaleY = scale.value
+                                                    }
                                             )
-                                            .graphicsLayer {
-                                                scaleX = scale.value
-                                                scaleY = scale.value
+                                        } else {
+                                            AnimatedContent(
+                                                timePointingIcon,
+                                                transitionSpec = {
+                                                    slideInHorizontally { it } togetherWith slideOutHorizontally { it }
+                                                }) {
+                                                Image(
+                                                    if (!it) painterResource(R.drawable.brainstorming)
+                                                    else painterResource(R.drawable.no_card_yet),
+                                                    null,
+                                                    modifier = Modifier.size(80.dp)
+                                                )
                                             }
-                                    )
+                                        }
+                                    }
                                     Text(
-                                        text = "due for reviews",
+                                        text = if (state.deck.totalCards == 0 || state.deck.dueCards > 0) "due for reviews"
+                                        else "All caught up!",
                                         style = AppTheme.typography.body1,
                                         modifier = Modifier.sharedElement(
                                             rememberSharedContentState(
@@ -257,14 +284,25 @@ private fun DeckScreen(
                                         .padding(top = 25.dp, bottom = 20.dp)
                                 ) {
                                     SecondaryButton({ onAddCardClick() }) {
-                                        Text("Add card")
+                                        Text("Add Card")
                                     }
                                     Spacer(modifier = Modifier.width(6.dp))
+                                    val coroutine = rememberCoroutineScope()
                                     PrimaryButton(
-                                        { onStudyClick() },
+                                        {
+                                            if (state.deck.dueCards > 0) {
+                                                onStudyClick()
+                                            } else {
+                                                coroutine.launch {
+                                                    timePointingIcon = true
+                                                    delay(2000)
+                                                    timePointingIcon = false
+                                                }
+                                            }
+                                        },
                                         modifier = Modifier.weight(1f, true)
                                     ) {
-                                        Text("Start study")
+                                        Text("Start Review")
                                     }
                                 }
                             }

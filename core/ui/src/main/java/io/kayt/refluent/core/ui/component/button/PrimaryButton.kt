@@ -48,7 +48,7 @@ private fun PrimaryButtonPreview() {
                 LocalTextStyle provides AppTheme.typography.button,
                 LocalContentColor provides AppTheme.colors.onBackgroundDark
             ) {
-                Text("Start Study")
+                Text("Start Review")
             }
         }
     )

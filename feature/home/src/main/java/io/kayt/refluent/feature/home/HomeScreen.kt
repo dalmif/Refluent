@@ -79,6 +79,7 @@ internal fun HomeScreen(
     onAddDeckClick: (deckCount: Int) -> Unit,
     onDeckClick: (Long) -> Unit,
     onDeckEditClick: (Long) -> Unit,
+    onStudyClick: (Long) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -101,7 +102,8 @@ internal fun HomeScreen(
         onDeckClick = onDeckClick,
         onDeckEditClick = onDeckEditClick,
         onQueryChange = viewModel::onQueryChange,
-        searchResult = searchResult
+        searchResult = searchResult,
+        onStudyClick = onStudyClick
     )
 }
 
@@ -112,6 +114,7 @@ private fun HomeScreen(
     query: String,
     searchResult: SearchResult,
     onAddDeckClick: () -> Unit,
+    onStudyClick: (Long) -> Unit,
     onDeckEditClick: (Long) -> Unit,
     onDeckClick: (Long) -> Unit,
     onQueryChange: (String) -> Unit,
@@ -233,7 +236,7 @@ private fun HomeScreen(
                                                     deck = decks[index],
                                                     modifier = Modifier.padding(bottom = 10.dp),
                                                     onClick = { onDeckClick(decks[index].id) },
-                                                    onStudyClick = {},
+                                                    onStudyClick = { onStudyClick(decks[index].id) },
                                                     onLongPress = {
                                                         onDeckEditClick(decks[index].id)
                                                     },

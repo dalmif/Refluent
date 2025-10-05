@@ -46,6 +46,9 @@ fun MainUi(
                     },
                     onDeckEditClick = {
                         navController.navigateToEditDeck(it)
+                    },
+                    onStudyClick = {
+                        navController.navigateToFlashcard(it)
                     }
                 )
                 deck(
