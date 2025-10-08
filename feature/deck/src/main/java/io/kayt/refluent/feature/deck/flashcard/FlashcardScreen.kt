@@ -303,7 +303,7 @@ private fun FlashcardScreen(
                                             spread = Spread.WIDE,
                                             colors = listOf(0xfce18a, 0xff726d, 0xf4306d, 0xb48def),
                                             emitter = Emitter(
-                                                duration = 5,
+                                                duration = 3,
                                                 TimeUnit.SECONDS
                                             ).perSecond(90),
                                             position = Position.Absolute(

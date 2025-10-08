@@ -123,7 +123,6 @@ private fun AddCardScreen(
     onDeleteClick: () -> Unit,
     onAddCardButton: () -> Unit
 ) {
-    val scope = rememberCoroutineScope()
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
@@ -190,7 +189,7 @@ private fun AddCardScreen(
                             .heightIn(min = 140.dp),
                         placeholder = {
                             Text(
-                                "Additional explanation that will shown on the back side",
+                                "Additional explanation that will be shown on the back side",
                                 style = AppTheme.typography.body2,
                             )
                         }

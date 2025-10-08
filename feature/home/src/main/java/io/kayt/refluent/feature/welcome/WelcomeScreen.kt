@@ -299,6 +299,8 @@ private fun WelcomeScreenBackground(
 @Composable
 private fun WelcomeScreenPreview() {
     WelcomeScreen(
+        state = WelcomeUiState(""),
+        onNameChange = {},
         onNextButtonClick = {},
     )
 }
