@@ -197,8 +197,12 @@ private fun FlashcardScreen(
                                         items(state.cards) { card, index, offset ->
                                             Box(
                                                 modifier = Modifier.graphicsLayer {
-                                                    rotationZ = if (swipeableState.currentCardIndex == index) 0f else (-1f).pow(index % 2) * 1f
-                                                    scaleY = if (index == swipeableState.currentCardIndex) 1f else 1.04f
+                                                    rotationZ =
+                                                        if (swipeableState.currentCardIndex == index) 0f else (-1f).pow(
+                                                            index % 2
+                                                        ) * 1f
+                                                    scaleY =
+                                                        if (index == swipeableState.currentCardIndex) 1f else 1.04f
                                                 }
                                             ) {
                                                 SwipeableCard(
@@ -303,8 +307,8 @@ private fun FlashcardScreen(
                                             spread = Spread.WIDE,
                                             colors = listOf(0xfce18a, 0xff726d, 0xf4306d, 0xb48def),
                                             emitter = Emitter(
-                                                duration = 3,
-                                                TimeUnit.SECONDS
+                                                duration = 2500,
+                                                TimeUnit.MILLISECONDS
                                             ).perSecond(90),
                                             position = Position.Absolute(
                                                 konfettiPosition.first.x,
@@ -385,12 +389,13 @@ private fun FlashcardScreen(
                                                     .background(Color(0xFFF5D923))
                                             )
                                             Spacer(Modifier.width(15.dp))
+                                            val randomPhrase = remember {
+                                                motivationalPhrases[Random.nextInt(
+                                                    motivationalPhrases.size
+                                                )]
+                                            }
                                             Text(
-                                                motivationalPhrases[
-                                                    Random.nextInt(
-                                                        motivationalPhrases.size
-                                                    )
-                                                ],
+                                                randomPhrase,
                                                 style = AppTheme.typography.body1,
                                                 color = AppTheme.colors.textPrimary.copy(alpha = 0.8f)
                                             )
@@ -514,7 +519,9 @@ private fun SwipeableCard(
                                 painter = painterResource(R.drawable.ic_light_sound_wave),
                                 contentDescription = "Play audio",
                                 modifier = Modifier.size(24.dp),
-                                tint = if (ttfManager.isAvailable) Color(0xFFB2B2B2) else Color(0xFFCCCCCC)
+                                tint = if (ttfManager.isAvailable) Color(0xFFB2B2B2) else Color(
+                                    0xFFCCCCCC
+                                )
                             )
                         }
                     }
