@@ -492,7 +492,7 @@ private fun SwipeableCard(
                         modifier = Modifier.alpha(alpha = if (isVisible) 1f else 0f)
                     ) {
                         Text(
-                            text = "/${card.phonetic}/",
+                            text = "/${card.phonetic}/".takeIf { card.phonetic.isNotBlank() } ?: "",
                             style = AppTheme.typography.body1,
                             color = Color(0xFFA4A4A4)
                         )
