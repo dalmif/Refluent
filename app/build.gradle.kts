@@ -74,7 +74,6 @@ dependencies {
     //Firebase and crashlytics
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.crashlytics.ndk)
-    implementation(libs.firebase.analytics)
 
     implementation(libs.androidx.splash)
 
