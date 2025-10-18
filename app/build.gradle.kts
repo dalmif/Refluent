@@ -76,6 +76,9 @@ dependencies {
     implementation(libs.firebase.crashlytics.ndk)
 
     implementation(libs.androidx.splash)
+    implementation(libs.androidx.window)
+    implementation(libs.androidx.window.core)
+
 
     implementation(project(":feature:home"))
     implementation(project(":feature:deck"))

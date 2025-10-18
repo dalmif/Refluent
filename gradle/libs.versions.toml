@@ -111,6 +111,7 @@ androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-com
 androidx-security = { module = "androidx.security:security-crypto", version.ref = "androidx-security" }
 androidx-startup = { module = "androidx.startup:startup-runtime", version.ref = "androidx-startup" }
 androidx-window = { module = "androidx.window:window", version.ref = "androidx-window" }
+androidx-window-core = { module = "androidx.window:window-core", version.ref = "androidx-window" }
 androidx-splash = {module = "androidx.core:core-splashscreen", version.ref = "androidx-splash"}
 
 # Network
