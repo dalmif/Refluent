@@ -286,77 +286,37 @@ class DeckRepository @Inject constructor(
     /**
      * Save the spaced-repetition review result for a card using SM-2 algorithm.
      * @param card The current card snapshot (domain model)
-     * @param quality The 0..5 quality score (5 = perfect). Values < 3 reset repetition.
+     * @param remembered Whether the user remembered the card (true) or not (false)
      */
-    suspend fun saveReviewResult(card: Card, quality: Int) {
-        require(quality in 0..5) { "quality must be in 0..5" }
-
+    suspend fun saveReviewResult(card: Card, remembered: Boolean) {
         withContext(Dispatchers.IO) {
             val now = System.currentTimeMillis()
-
-            // compute updated ease first (SM-2ish but slightly conservative upwards)
-            val rawEaseUpdate = if (quality < 3) {
-                card.easeFactor - LAPSE_PENALTY
-            } else {
-                // classic SM-2: EF':= EF + (0.1 − (5−q) * (0.08 + (5−q)*0.02))
-                card.easeFactor + (0.10f - (5 - quality) * (0.08f + (5 - quality) * 0.02f))
-            }
-            val newEase = rawEaseUpdate.coerceIn(MIN_EASE, MAX_EASE)
-
-            val millisPerDay = 24L * 60 * 60 * 1000
-            val minute = 60L * 1000
-
-            var nextRepetition: Int
-            var nextIntervalDays: Int
-            var nextReviewAt: Long
-
-            if (quality < 3) {
-                // Lapse: reset repetition, do a quick follow-up in 10 minutes
-                nextRepetition = 0
-                nextIntervalDays = 0
-                nextReviewAt = now + STEP1_MINUTES * minute
-            } else {
-                // Passed
-                when (card.repetition) {
-                    0 -> {
-                        // First successful pass → 10 min check
-                        nextRepetition = 1
-                        nextIntervalDays = 0
-                        nextReviewAt = now + STEP1_MINUTES * minute
-                    }
-
-                    1 -> {
-                        // Second pass → 1 hour check
-                        nextRepetition = 2
-                        nextIntervalDays = 0
-                        nextReviewAt = now + STEP2_MINUTES * minute
-                    }
-
-                    2 -> {
-                        // Third pass → 1 day
-                        nextRepetition = 3
-                        nextIntervalDays = 1
-                        nextReviewAt = now + nextIntervalDays * millisPerDay
-                    }
-
-                    else -> {
-                        // Review phase with global modifier and optional easy bonus
-                        nextRepetition = card.repetition + 1
-                        val base = (card.interval * newEase * INTERVAL_MODIFIER)
-                            .toDouble().roundToInt().coerceAtLeast(1)
-
-                        val withEasyBonus = if (quality == 5) {
-                            (base * EASY_BONUS).roundToInt().coerceAtLeast(1)
-                        } else {
-                            base
-                        }
-
-                        nextIntervalDays = withEasyBonus
-                        nextReviewAt = now + nextIntervalDays * millisPerDay
-                    }
+            val quality = if (remembered) 5 else 0 // 5 = perfect recall, 0 = complete failure
+            
+            val currentInterval = card.interval
+            val currentRepetition = card.repetition
+            val currentEase = card.easeFactor
+            
+            val (nextIntervalDays, nextRepetition, newEase) = calculateNextReview(
+                quality = quality,
+                currentInterval = currentInterval,
+                currentRepetition = currentRepetition,
+                currentEase = currentEase
+            )
+            
+            // Calculate next review time
+            val nextReviewAt = if (nextIntervalDays == 0) {
+                // Learning phase - use minutes
+                if (nextRepetition == 0) {
+                    now + (STEP1_MINUTES * 60 * 1000) // 10 minutes
+                } else {
+                    now + (STEP2_MINUTES * 60 * 1000) // 60 minutes
                 }
+            } else {
+                // Mature phase - use days
+                now + (nextIntervalDays * 24 * 60 * 60 * 1000)
             }
-
+            
             val updatedEntity = CardEntity(
                 uid = card.id,
                 deckOwnerId = card.deckId,
@@ -366,8 +326,8 @@ class DeckRepository @Inject constructor(
                 comment = card.comment,
                 isArchived = card.isArchived,
                 tags = card.tags,
-                nextReview = nextReviewAt, // supports sub-day learning steps
-                interval = nextIntervalDays, // will be 0 for sub-day steps
+                nextReview = nextReviewAt,
+                interval = nextIntervalDays,
                 repetition = nextRepetition,
                 easeFactor = newEase,
                 lastReviewed = now,
@@ -376,5 +336,53 @@ class DeckRepository @Inject constructor(
 
             deckDataAccess.updateCard(updatedEntity)
         }
+    }
+    
+    /**
+     * Calculate the next review parameters using SM-2 algorithm
+     * @param quality Quality score (0-5, where 5 is perfect)
+     * @param currentInterval Current interval in days
+     * @param currentRepetition Current repetition count
+     * @param currentEase Current ease factor
+     * @return Triple of (nextIntervalDays, nextRepetition, newEase)
+     */
+    private fun calculateNextReview(
+        quality: Int,
+        currentInterval: Int,
+        currentRepetition: Int,
+        currentEase: Float
+    ): Triple<Int, Int, Float> {
+        var newEase = currentEase
+        var nextRepetition = currentRepetition
+        var nextIntervalDays: Int
+        
+        // Update ease factor
+        newEase = newEase + (0.1f - (5 - quality) * (0.08f + (5 - quality) * 0.02f))
+        newEase = newEase.coerceIn(MIN_EASE, MAX_EASE)
+        
+        // Apply lapse penalty if quality < 3
+        if (quality < 3) {
+            nextRepetition = 0
+            newEase -= LAPSE_PENALTY
+            newEase = newEase.coerceIn(MIN_EASE, MAX_EASE)
+        } else {
+            nextRepetition++
+        }
+        
+        // Calculate next interval
+        when (nextRepetition) {
+            0 -> nextIntervalDays = 0 // Learning phase
+            1 -> nextIntervalDays = 1
+            2 -> nextIntervalDays = 6
+            else -> {
+                nextIntervalDays = (currentInterval * newEase * INTERVAL_MODIFIER).roundToInt()
+                // Apply easy bonus for perfect recall
+                if (quality == 5) {
+                    nextIntervalDays = (nextIntervalDays * EASY_BONUS).roundToInt()
+                }
+            }
+        }
+        
+        return Triple(nextIntervalDays, nextRepetition, newEase)
     }
 }

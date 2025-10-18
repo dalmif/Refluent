@@ -35,13 +35,13 @@ class FlashcardViewModel @Inject constructor(
 
     fun markCardAsGood(card: Card) {
         viewModelScope.launch {
-            deckRepository.saveReviewResult(card, 4)
+            deckRepository.saveReviewResult(card, remembered = true)
         }
     }
 
     fun markCardAsBad(card: Card) {
         viewModelScope.launch {
-            deckRepository.saveReviewResult(card, 0)
+            deckRepository.saveReviewResult(card, remembered = false)
         }
     }
 }
