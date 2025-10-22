@@ -153,8 +153,9 @@ private fun FlashcardScreen(
 
                     is FlashcardUiState.Success -> {
                         val flipState = remember { mutableStateOf(0 to false) }
+                        val cardSize = state.cards.size
                         val swipeableState = rememberSwipeableCardsState(
-                            itemCount = { state.cards.size }
+                            itemCount = { cardSize }
                         )
                         val cardVisible =
                             remember { derivedStateOf { swipeableState.currentCardIndex != state.cards.size } }
@@ -168,7 +169,6 @@ private fun FlashcardScreen(
                                         .fillMaxSize()
                                         .padding(innerPadding)
                                 ) {
-                                    val density = LocalDensity.current
                                     LazySwipeableCards(
                                         modifier = Modifier
                                             .weight(1f)
@@ -179,7 +179,6 @@ private fun FlashcardScreen(
                                             stackedCardsOffset = 0.dp
                                         ),
                                         factors = SwipeableCardsFactors(
-//                                            cardOffsetCalculation = { index, _, _ -> Offset(x = 0f, y = (-1f).pow(index % 2) * index.toFloat() * density.run { 4.dp.roundToPx() }) }
                                             cardOffsetCalculation = { index, _, _ -> Offset.Zero }
                                         ),
                                         onSwipe = { card, direction ->

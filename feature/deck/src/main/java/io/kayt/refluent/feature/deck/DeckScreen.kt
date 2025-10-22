@@ -109,10 +109,7 @@ private fun DeckScreen(
     with(LocalSharedTransitionScope.current) {
         if (state is DeckUiState.Success) {
             val lazyColumnState = rememberLazyListState()
-            val topmostAppBarState =
-                rememberTopmostAppBarState(
-                    canScroll = { lazyColumnState.canScrollForward || lazyColumnState.canScrollBackward }
-                )
+            val topmostAppBarState = rememberTopmostAppBarState(canScroll = { true })
             Scaffold { innerPadding ->
                 Box(
                     Modifier
