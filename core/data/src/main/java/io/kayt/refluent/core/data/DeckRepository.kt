@@ -33,7 +33,9 @@ class DeckRepository @Inject constructor(
     companion object {
         // knobs you can tweak
         private const val MIN_EASE = 1.30f
-        private const val MAX_EASE = 2.50f
+        // I just changed the ease factor to see the cards more repeatedly, it's a bit aggressive
+        // the default one is 2.5f
+        private const val MAX_EASE = 1.7f
         private const val LAPSE_PENALTY = 0.25f // stronger penalty on fails
         private const val INTERVAL_MODIFIER = 0.85f // 15% sooner globally
         private const val EASY_BONUS = 1.10f // small push for perfect recall
@@ -291,7 +293,7 @@ class DeckRepository @Inject constructor(
     suspend fun saveReviewResult(card: Card, remembered: Boolean) {
         withContext(Dispatchers.IO) {
             val now = System.currentTimeMillis()
-            val quality = if (remembered) 5 else 0 // 5 = perfect recall, 0 = complete failure
+            val quality = if (remembered) 4 else 0 // 5 = perfect recall, 0 = complete failure
             
             val currentInterval = card.interval
             val currentRepetition = card.repetition
