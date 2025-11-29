@@ -14,10 +14,10 @@ val appTypography = AppTypography(
         letterSpacing = 0.sp,
         lineHeight = 45.sp
     ),
-    greeting2 = TextStyle(
+    large = TextStyle(
         fontFamily = DMSans,
-        fontWeight = FontWeight.Normal,
-        fontSize = 34.sp,
+        fontWeight = FontWeight.ExtraBold,
+        fontSize = 31.sp,
         letterSpacing = 0.sp,
         lineHeight = 30.sp
     ),

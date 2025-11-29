@@ -19,6 +19,8 @@ import io.kayt.refluent.feature.home.adddeck.addDeck
 import io.kayt.refluent.feature.home.adddeck.navigateToAddDeck
 import io.kayt.refluent.feature.home.adddeck.navigateToEditDeck
 import io.kayt.refluent.feature.home.home
+import io.kayt.refluent.feature.home.liveedit.liveEdit
+import io.kayt.refluent.feature.home.liveedit.navigateToLiveEdit
 import io.kayt.refluent.feature.home.navigateToHome
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -45,6 +47,9 @@ fun MainUi() {
                     },
                     onStudyClick = {
                         navController.navigateToFlashcard(it)
+                    },
+                    onLiveEditClick = {
+                        navController.navigateToLiveEdit()
                     }
                 )
                 deck(
@@ -65,6 +70,7 @@ fun MainUi() {
                 )
                 addCard(navController)
                 addDeck(navController)
+                liveEdit(navController)
             }
         }
     }

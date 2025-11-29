@@ -72,6 +72,7 @@ internal fun HomeScreen(
     onDeckClick: (Long) -> Unit,
     onDeckEditClick: (Long) -> Unit,
     onStudyClick: (Long) -> Unit,
+    onLiveEditClick: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -95,7 +96,8 @@ internal fun HomeScreen(
         onDeckEditClick = onDeckEditClick,
         onQueryChange = viewModel::onQueryChange,
         searchResult = searchResult,
-        onStudyClick = onStudyClick
+        onStudyClick = onStudyClick,
+        onLiveEditClick = onLiveEditClick
     )
 }
 
@@ -110,6 +112,7 @@ private fun HomeScreen(
     onDeckEditClick: (Long) -> Unit,
     onDeckClick: (Long) -> Unit,
     onQueryChange: (String) -> Unit,
+    onLiveEditClick: () -> Unit
 ) {
     with(LocalSharedTransitionScope.current) {
         MeshGradient(
@@ -124,7 +127,6 @@ private fun HomeScreen(
                 }
             )
         ) {
-            val topmostAppBarState = rememberTopmostAppBarState()
             Scaffold(
                 containerColor = Color.Transparent,
                 topBar = {
@@ -142,7 +144,7 @@ private fun HomeScreen(
                         )
                         Spacer(modifier = Modifier.weight(1f))
                         IconButton(
-                            {},
+                            onLiveEditClick,
                             modifier = Modifier.padding(horizontal = 15.dp)
                         ) {
                             Box {
