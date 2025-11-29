@@ -6,35 +6,27 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.kayt.core.model.Deck
 import io.kayt.core.model.SearchResultCard
 import io.kayt.refluent.core.data.DeckRepository
-import io.kayt.refluent.core.data.UserRepository
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    deckRepository: DeckRepository,
-    userRepository: UserRepository,
+    deckRepository: DeckRepository
 ) : ViewModel() {
 
     val searchQuery = MutableStateFlow("")
     val state: StateFlow<HomeUiState> =
-        combine(
-            flowOf(userRepository.getUsername()),
-            deckRepository.getAllDeck()
-        )
-        { user, decks ->
+        deckRepository.getAllDeck().mapLatest { decks ->
             if (decks.isEmpty()) {
-                HomeUiState.Empty(name = user ?: "")
+                HomeUiState.Empty
             } else {
-                HomeUiState.Success(decks, name = user ?: "")
+                HomeUiState.Success(decks)
             }
         }
             .stateIn(
@@ -47,10 +39,9 @@ class HomeViewModel @Inject constructor(
     val searchResult = searchQuery
         .debounce(200)
         .mapLatest {
-            if (it.isBlank()){
+            if (it.isBlank()) {
                 SearchResult.NoSearch
-            }
-            else {
+            } else {
                 SearchResult.SearchContent(deckRepository.searchCardGlobally(it))
             }
         }
@@ -72,7 +63,7 @@ sealed interface SearchResult {
 
 sealed interface HomeUiState {
 
-    data class Empty(val name: String) : HomeUiState
+    data object Empty : HomeUiState
     data object Loading : HomeUiState
-    data class Success(val decks: List<Deck>, val name: String) : HomeUiState
+    data class Success(val decks: List<Deck>) : HomeUiState
 }

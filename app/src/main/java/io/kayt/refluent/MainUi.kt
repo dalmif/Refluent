@@ -20,14 +20,10 @@ import io.kayt.refluent.feature.home.adddeck.navigateToAddDeck
 import io.kayt.refluent.feature.home.adddeck.navigateToEditDeck
 import io.kayt.refluent.feature.home.home
 import io.kayt.refluent.feature.home.navigateToHome
-import io.kayt.refluent.feature.welcome.WelcomeRoute
-import io.kayt.refluent.feature.welcome.welcome
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun MainUi(
-    isLoggedIn: Boolean
-) {
+fun MainUi() {
     val navController = rememberNavController()
     SharedTransitionLayout {
         CompositionLocalProvider(
@@ -35,7 +31,7 @@ fun MainUi(
         ) {
             NavHost(
                 navController = navController,
-                startDestination = if (!isLoggedIn) WelcomeRoute else HomeRoute
+                startDestination = HomeRoute
             ) {
                 home(
                     onAddDeckClick = {
@@ -69,10 +65,6 @@ fun MainUi(
                 )
                 addCard(navController)
                 addDeck(navController)
-                welcome(onNextButtonClick = {
-                    navController.popBackStack()
-                    navController.navigateToHome()
-                })
             }
         }
     }

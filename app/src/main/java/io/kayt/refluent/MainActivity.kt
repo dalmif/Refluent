@@ -41,7 +41,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppTheme {
                 CompositionLocalProvider(provideTTSManager()) {
-                    MainUi(isLoggedIn = userRepository.getUsername() != null)
+                    MainUi()
                 }
             }
         }

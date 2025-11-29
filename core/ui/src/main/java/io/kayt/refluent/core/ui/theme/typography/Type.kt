@@ -9,8 +9,8 @@ import androidx.compose.ui.unit.sp
 val appTypography = AppTypography(
     greeting1 = TextStyle(
         fontFamily = DMSans,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 34.sp,
+        fontWeight = FontWeight.Bold,
+        fontSize = 25.sp,
         letterSpacing = 0.sp,
         lineHeight = 45.sp
     ),
