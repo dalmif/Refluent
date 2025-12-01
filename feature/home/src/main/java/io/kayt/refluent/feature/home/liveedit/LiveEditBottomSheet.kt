@@ -1,7 +1,11 @@
 package io.kayt.refluent.feature.home.liveedit
 
+import android.view.WindowManager
+import androidx.activity.compose.LocalActivity
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,9 +13,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -22,13 +31,39 @@ import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import io.kayt.core.model.util.applyIf
 import io.kayt.refluent.core.ui.R
 import io.kayt.refluent.core.ui.component.button.PrimaryButton
 import io.kayt.refluent.core.ui.theme.AppTheme
 
 @Composable
-fun LiveEditModal() {
+fun LiveEditModal(
+    viewModel: LiveEditViewModel = hiltViewModel()
+) {
+    val state by viewModel.state.collectAsState()
+    LiveEditContent(
+        state,
+        onConnectClick = viewModel::connect,
+        onDisconnectClick = viewModel::disconnect,
+    )
+
+    // Keep the screen on to not let the socket to die
+    val activity = LocalActivity.current
+    DisposableEffect(Unit) {
+        activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        onDispose {
+            activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+    }
+}
+
+@Composable
+private fun LiveEditContent(
+    state: LiveEditUiState,
+    onConnectClick: () -> Unit,
+    onDisconnectClick: () -> Unit,
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -59,16 +94,18 @@ fun LiveEditModal() {
                 painter = painterResource(R.drawable.brainy_laptop),
                 contentDescription = null
             )
-            val stars = "******"
-            val detail = stars
-            Text(
-                detail,
-                style = AppTheme.typography.large,
-                modifier = Modifier
-                    .padding(horizontal = 12.dp)
-                    .applyIf(detail == stars) { offset(y = 7.dp) }
+            AnimatedContent(state, contentKey = { it is LiveEditUiState.Connected }) {
+                val stars = "******"
+                val detail = if (it is LiveEditUiState.Connected) it.connectionCode else stars
+                Text(
+                    detail,
+                    style = AppTheme.typography.large,
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp)
+                        .applyIf(detail == stars) { offset(y = 7.dp) }
 
-            )
+                )
+            }
         }
         Text(
             AnnotatedString.fromHtml(
@@ -84,12 +121,29 @@ fun LiveEditModal() {
         )
         Spacer(Modifier.height(10.dp))
         PrimaryButton(
-            {},
+            {
+                when (state) {
+                    is LiveEditUiState.Connected -> onDisconnectClick()
+                    LiveEditUiState.Disconnected -> onConnectClick()
+                    LiveEditUiState.Connecting -> Unit
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 20.dp, horizontal = 10.dp)
         ) {
-            Text("Start Sharing")
+            if (state is LiveEditUiState.Connecting) {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(
+                        color = AppTheme.colors.onBackgroundDark,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            } else {
+                Text(
+                    if (state is LiveEditUiState.Connected) "Stop Sharing" else "Start Sharing"
+                )
+            }
         }
     }
 }

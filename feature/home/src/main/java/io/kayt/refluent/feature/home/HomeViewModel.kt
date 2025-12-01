@@ -4,12 +4,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.kayt.core.model.Deck
+import io.kayt.core.model.LiveEditState
 import io.kayt.core.model.SearchResultCard
 import io.kayt.refluent.core.data.DeckRepository
+import io.kayt.refluent.core.data.LiveEditRepository
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
@@ -17,16 +20,20 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    deckRepository: DeckRepository
+    deckRepository: DeckRepository,
+    liveEditRepository: LiveEditRepository
 ) : ViewModel() {
 
     val searchQuery = MutableStateFlow("")
     val state: StateFlow<HomeUiState> =
-        deckRepository.getAllDeck().mapLatest { decks ->
+        combine(
+            deckRepository.getAllDeck(),
+            liveEditRepository.getLiveEditState()
+        ) { decks, liveEditState ->
             if (decks.isEmpty()) {
                 HomeUiState.Empty
             } else {
-                HomeUiState.Success(decks)
+                HomeUiState.Success(decks, liveEditState)
             }
         }
             .stateIn(
@@ -65,5 +72,5 @@ sealed interface HomeUiState {
 
     data object Empty : HomeUiState
     data object Loading : HomeUiState
-    data class Success(val decks: List<Deck>) : HomeUiState
+    data class Success(val decks: List<Deck>, val liveEditState: LiveEditState) : HomeUiState
 }

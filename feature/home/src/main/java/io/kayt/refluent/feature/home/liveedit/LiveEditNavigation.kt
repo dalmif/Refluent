@@ -30,7 +30,7 @@ fun NavGraphBuilder.liveEdit(navController: NavController) {
             shape = RoundedCornerShape(38.dp),
             containerColor = AppTheme.colors.background,
             modifier = Modifier
-                .padding(horizontal = 15.dp)
+                .padding(horizontal = 10.dp)
                 .statusBarsPadding()
                 .navigationBarsPadding(),
             onDismissRequest = {

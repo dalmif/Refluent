@@ -30,14 +30,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.ProvideTextStyle
@@ -409,11 +404,11 @@ private fun FreeformTopmostAppBar(
                             measurable.measure(
                                 constraints.copy(
                                     minHeight =
-                                    if (ignoreMinHeight) {
-                                        requestedMinHeight.roundToPx()
-                                    } else {
-                                        TopmostAppBarDefaults.height.roundToPx() + windowTopInset.roundToPx()
-                                    }
+                                        if (ignoreMinHeight) {
+                                            requestedMinHeight.roundToPx()
+                                        } else {
+                                            TopmostAppBarDefaults.height.roundToPx() + windowTopInset.roundToPx()
+                                        }
                                 )
                             )
                         // update the offset whenever the layout updated
@@ -460,12 +455,12 @@ private fun FreeformTopmostAppBar(
                 Column {
                     TopmostAppBarLayout(
                         modifier =
-                        Modifier
-                            .background(TopmostAppBarDefaults.containerColor.copy(alpha = containerColorAlpha))
-                            .windowInsetsPadding(TopmostAppBarDefaults.windowInsets)
-                            // clip after padding so we don't show the title over the inset area
-                            .clipToBounds()
-                            .heightIn(max = TopmostAppBarDefaults.height),
+                            Modifier
+                                .background(TopmostAppBarDefaults.containerColor.copy(alpha = containerColorAlpha))
+                                .windowInsetsPadding(TopmostAppBarDefaults.windowInsets)
+                                // clip after padding so we don't show the title over the inset area
+                                .clipToBounds()
+                                .heightIn(max = TopmostAppBarDefaults.height),
                         scrolledOffset = { 0f },
                         navigationIconContentColor = TopmostAppBarDefaults.navigationIconContentColor,
                         titleContentColor = TopmostAppBarDefaults.titleContentColor,
@@ -835,9 +830,9 @@ private fun TopmostAppBarLayout(
                         // is long. In this case, offset to the left.
                         baseX +=
                             (
-                                (constraints.maxWidth - actionWidth) -
-                                    (baseX + titlePlaceable.width)
-                                )
+                                    (constraints.maxWidth - actionWidth) -
+                                            (baseX + titlePlaceable.width)
+                                    )
                     }
                     baseX.coerceIn(
                         TopmostAppBarDefaults.topAppBarTitleInset.roundToPx(),
@@ -929,25 +924,6 @@ private fun TopmostAppBarPreview() {
     }
 }
 
-@Preview
-@Composable
-private fun TopmostAppBarWithNavigationPreview() {
-    AppTheme {
-        TopmostAppBar(
-            title = "Hello world",
-            navigationIcon = {
-                IconButton({}) {
-                    Icon(Icons.AutoMirrored.Default.ArrowBack, null)
-                }
-            },
-            actions = {
-                IconButton({}) {
-                    Icon(Icons.Default.Info, null)
-                }
-            }
-        )
-    }
-}
 
 // @Preview
 // @Composable
@@ -975,43 +951,6 @@ private fun TopmostAppBarWithNavigationPreview() {
 //        }
 //    }
 // }
-
-@Preview
-@Composable
-private fun MediumTopmostAppBarWithNavigationPreview() {
-    AppTheme {
-        val state = rememberTopmostAppBarState()
-        Scaffold(
-            topBar = {
-                MediumTopmostAppBar(
-                    state = state,
-                    title = {
-                        Text("Hello World")
-                    },
-                    smallTitle = {
-                        Text("Hi there!")
-                    },
-                    navigationIcon = {
-                        IconButton({}) {
-                            Icon(Icons.AutoMirrored.Default.ArrowBack, null)
-                        }
-                    }
-                )
-            },
-            modifier = Modifier.nestedScroll(state.nestedScrollConnection)
-        ) { padding ->
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-            ) {
-                items(100) {
-                    Text("Scroll Here.")
-                }
-            }
-        }
-    }
-}
 
 @Preview
 @Composable

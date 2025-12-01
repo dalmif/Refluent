@@ -51,12 +51,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.kayt.core.model.LiveEditState
 import io.kayt.refluent.core.ui.R
 import io.kayt.refluent.core.ui.component.DeckEntry
 import io.kayt.refluent.core.ui.component.LocalSharedTransitionScope
 import io.kayt.refluent.core.ui.component.MeshGradient
 import io.kayt.refluent.core.ui.component.button.PrimaryButton
-import io.kayt.refluent.core.ui.component.rememberTopmostAppBarState
 import io.kayt.refluent.core.ui.theme.AppTheme
 import io.kayt.refluent.core.ui.theme.typography.LifeSaver
 import io.kayt.refluent.feature.home.component.DeckCard
@@ -154,13 +154,19 @@ private fun HomeScreen(
                                     contentDescription = "Open in Browser"
                                 )
                                 // if connection is established and online
-                                if (false) {
+                                val liveEditState = (state as? HomeUiState.Success)?.liveEditState
+                                if (state is HomeUiState.Success && liveEditState !is LiveEditState.Disabled) {
                                     Box(
                                         Modifier
                                             .offset(y = -2.dp, x = 2.dp)
                                             .size(12.dp)
                                             .clip(CircleShape)
-                                            .background(Color(0xFF3B9E20))
+                                            .background(
+                                                if (liveEditState is LiveEditState.Enabled) Color(
+                                                    0xFF3B9E20
+                                                )
+                                                else Color(0xFF946D1F)
+                                            )
                                             .align(
                                                 Alignment.TopEnd
                                             )
