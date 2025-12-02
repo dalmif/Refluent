@@ -3,8 +3,8 @@ package io.kayt.refluent.feature.home.liveedit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.kayt.core.domain.repository.LiveEditRepository
 import io.kayt.core.model.LiveEditState
-import io.kayt.refluent.core.data.LiveEditRepository
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -45,8 +45,7 @@ class LiveEditViewModel @Inject constructor(
             viewModelScope.launch {
                 try {
                     liveEditRepository.connect()
-                }
-                finally {
+                } finally {
                     isConnecting = false
                 }
             }

@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.window.core.layout.WindowSizeClass
@@ -25,6 +26,7 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var userRepository: UserRepository
+    private val viewModel by viewModels<MainViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         requestedOrientation = if (compactScreen()) {
@@ -45,6 +47,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+        viewModel.keepLiveEditAlwaysSync()
     }
 
     fun compactScreen(): Boolean {

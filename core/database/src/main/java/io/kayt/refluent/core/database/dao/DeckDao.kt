@@ -38,7 +38,7 @@ interface DeckDao {
     suspend fun deleteCardsByDeckId(deckId: Long)
 
     @Insert
-    suspend fun insertCard(card: CardEntity)
+    suspend fun insertCard(card: CardEntity) : Long
 
     @Update
     suspend fun updateCard(card: CardEntity)
@@ -51,6 +51,9 @@ interface DeckDao {
 
     @Query("SELECT * FROM cards WHERE deckOwnerId = :deckId ORDER BY uid DESC")
     fun getCardsForDeck(deckId: Long): Flow<List<CardEntity>>
+
+    @Query("SELECT * FROM cards ORDER BY uid DESC")
+    fun getAllCards(): Flow<List<CardEntity>>
 
     @Query("SELECT * FROM cards WHERE uid = :cardId")
     suspend fun getCardById(cardId: Long): CardEntity?

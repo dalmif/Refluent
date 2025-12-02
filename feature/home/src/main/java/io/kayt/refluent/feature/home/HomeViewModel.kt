@@ -3,11 +3,11 @@ package io.kayt.refluent.feature.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.kayt.core.domain.repository.DeckRepository
+import io.kayt.core.domain.repository.LiveEditRepository
 import io.kayt.core.model.Deck
 import io.kayt.core.model.LiveEditState
 import io.kayt.core.model.SearchResultCard
-import io.kayt.refluent.core.data.DeckRepository
-import io.kayt.refluent.core.data.LiveEditRepository
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

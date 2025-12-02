@@ -6,9 +6,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.mohamedrejeb.richeditor.model.RichTextState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.kayt.refluent.core.data.DeckRepository
+import io.kayt.core.domain.repository.DeckRepository
+import io.kayt.core.domain.repository.VocabularyRepository
 import io.kayt.refluent.core.data.GenerativeRepository
-import io.kayt.refluent.core.data.VocabularyRepository
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
