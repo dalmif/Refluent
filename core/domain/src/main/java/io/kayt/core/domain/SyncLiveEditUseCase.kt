@@ -4,6 +4,7 @@ import io.kayt.core.domain.repository.DeckRepository
 import io.kayt.core.domain.repository.LiveEditRepository
 import io.kayt.core.domain.repository.VocabularyRepository
 import io.kayt.core.model.CardOperation
+import io.kayt.core.model.DeckOperation
 import io.kayt.core.model.SyncOperation
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
@@ -18,6 +19,7 @@ class SyncLiveEditUseCase @Inject constructor(
     private val vocabularyRepository: VocabularyRepository
 ) {
     private val cardAddedFromRemote: MutableMap<String, Long> = mutableMapOf()
+    private val decksAddedFromRemote: MutableMap<String, Long> = mutableMapOf()
 
     suspend fun sync() {
         coroutineScope {
@@ -25,7 +27,10 @@ class SyncLiveEditUseCase @Inject constructor(
                 liveEditRepository.observeCardOperation().collect { operation ->
                     when (operation) {
                         is CardOperation.Create -> deckRepository.addNewCard(
-                            deckId = operation.deckId,
+                            deckId = when (val id = operation.deckId) {
+                                is DeckOperation.DeckId.LocalId -> id.id
+                                is DeckOperation.DeckId.RemoteId -> decksAddedFromRemote[id.id]!!
+                            },
                             frontSide = operation.front,
                             backSide = operation.back,
                             comment = operation.comment,
@@ -59,6 +64,19 @@ class SyncLiveEditUseCase @Inject constructor(
                 }
             }
 
+            launch {
+                liveEditRepository.observeDeckOperation().collect { operation ->
+                    when (operation) {
+                        is DeckOperation.Create -> deckRepository.addNewDeck(
+                            operation.name,
+                            0xFFEFE3B1.toInt() to 0xFFEFE3B1.toInt()
+                        ).also { decksAddedFromRemote[operation.remoteId] = it }
+
+                        is DeckOperation.Delete -> TODO()
+                        is DeckOperation.Update -> TODO()
+                    }
+                }
+            }
             launch {
                 liveEditRepository.observeSyncOperation().collect {
                     when (it) {

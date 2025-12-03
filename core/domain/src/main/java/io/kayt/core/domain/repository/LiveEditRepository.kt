@@ -3,6 +3,7 @@ package io.kayt.core.domain.repository
 import io.kayt.core.model.Card
 import io.kayt.core.model.CardOperation
 import io.kayt.core.model.Deck
+import io.kayt.core.model.DeckOperation
 import io.kayt.core.model.LiveEditState
 import io.kayt.core.model.SyncOperation
 import kotlinx.coroutines.flow.Flow
@@ -13,6 +14,8 @@ interface LiveEditRepository {
     fun observeCardOperation(): Flow<CardOperation>
 
     fun observeSyncOperation(): Flow<SyncOperation>
+
+    fun observeDeckOperation(): Flow<DeckOperation>
 
     suspend fun disconnect()
 

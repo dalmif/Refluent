@@ -8,7 +8,7 @@ sealed interface CardOperation {
 
     data class Create(
         val remoteId: String,
-        val deckId: Long,
+        val deckId: DeckOperation.DeckId,
         val front: String,
         val back: String,
         val comment: String

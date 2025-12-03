@@ -3,10 +3,12 @@ package io.kayt.refluent.core.data.network
 import io.kayt.core.model.Card
 import io.kayt.core.model.CardOperation
 import io.kayt.core.model.Deck
+import io.kayt.core.model.DeckOperation
 import io.kayt.core.model.SyncOperation
 import io.kayt.refluent.core.data.network.model.CardDto
 import io.kayt.refluent.core.data.network.model.CardOperationsDto
 import io.kayt.refluent.core.data.network.model.DeckDto
+import io.kayt.refluent.core.data.network.model.DeckOperationsDto
 import io.kayt.refluent.core.data.network.model.RegistrationRequestModel
 import io.kayt.refluent.core.data.network.model.SyncDataRequestModel
 import io.kayt.refluent.core.data.network.model.SyncOperationsDto
@@ -95,7 +97,7 @@ class LiveEditSocket @Inject constructor(private val socket: Socket) {
                             color2 = it.colors.second
                         )
                     },
-                    cards = cards.map { 
+                    cards = cards.map {
                         CardDto(
                             id = it.id,
                             deckId = it.deckId,
@@ -117,7 +119,9 @@ class LiveEditSocket @Inject constructor(private val socket: Socket) {
         when (event) {
             CardOperationsDto.Create -> CardOperation.Create(
                 remoteId = json.getString("cardId"),
-                deckId = json.getString("deckId").toLong(),
+                deckId = json.getString("deckId").toLongOrNull()
+                    ?.let { DeckOperation.DeckId.LocalId(it) }
+                    ?: DeckOperation.DeckId.RemoteId(json.getString("deckId")),
                 front = json.getString("front"),
                 back = json.getString("back"),
                 comment = json.getString("comment")
@@ -149,6 +153,21 @@ class LiveEditSocket @Inject constructor(private val socket: Socket) {
             SyncOperationsDto.PeerConnected -> SyncOperation.PeerConnected(
                 type = json.getString("type")
             )
+        }
+    }
+
+    fun observeDeckOperations(): Flow<DeckOperation> = collectFromSocket(
+        events = DeckOperationsDto.entries,
+        keySelector = { it.value },
+    ) { event, objects ->
+        val json = (objects.first() as JSONObject)
+        return@collectFromSocket when (event) {
+            DeckOperationsDto.Create -> DeckOperation.Create(
+                remoteId = json.getString("deckId"),
+                name = json.getString("title")
+            )
+
+            else -> error("Not supported yet")
         }
     }
 

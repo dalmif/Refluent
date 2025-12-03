@@ -45,8 +45,8 @@ class DeckRepositoryImpl @Inject constructor(
         private const val STEP2_MINUTES = 60L
     }
 
-    override suspend fun addNewDeck(name: String, colors: Pair<Int, Int>) {
-        withContext(Dispatchers.IO) {
+    override suspend fun addNewDeck(name: String, colors: Pair<Int, Int>): Long {
+        return withContext(Dispatchers.IO) {
             deckDataAccess.newDeck(
                 DeckEntity(
                     name = name,

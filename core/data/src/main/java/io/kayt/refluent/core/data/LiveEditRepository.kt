@@ -4,6 +4,7 @@ import io.kayt.core.domain.repository.LiveEditRepository
 import io.kayt.core.model.Card
 import io.kayt.core.model.CardOperation
 import io.kayt.core.model.Deck
+import io.kayt.core.model.DeckOperation
 import io.kayt.core.model.LiveEditState
 import io.kayt.core.model.SyncOperation
 import io.kayt.refluent.core.data.network.LiveEditSocket
@@ -29,6 +30,11 @@ class LiveEditRepositoryImpl @Inject constructor(
     override fun observeSyncOperation(): Flow<SyncOperation> {
         return liveEditSocket.observeSyncOperations()
     }
+
+    override fun observeDeckOperation(): Flow<DeckOperation> {
+        return liveEditSocket.observeDeckOperations()
+    }
+
 
     override suspend fun disconnect() {
         liveEditSocket.disconnect()

@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface DeckRepository {
 
-    suspend fun addNewDeck(name: String, colors: Pair<Int, Int>)
+    suspend fun addNewDeck(name: String, colors: Pair<Int, Int>) : Long
 
     suspend fun updateDeck(id: Long, name: String, colors: Pair<Int, Int>)
 
