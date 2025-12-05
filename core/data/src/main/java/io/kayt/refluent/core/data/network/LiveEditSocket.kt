@@ -82,7 +82,14 @@ class LiveEditSocket @Inject constructor(private val socket: Socket) {
         }
     }
 
-    fun sync(decks: List<Deck>, cards: List<Card>) {
+    fun sync(
+        decks: List<Deck>,
+        cards: List<Card>,
+        deckRemoteIds: List<Pair<String, Long>>,
+        cardRemoteIds: List<Pair<String, Long>>,
+    ) {
+        val deckRemoteIdMap = deckRemoteIds.associate { it.second to it.first }
+        val cardRemoteIdsMap = cardRemoteIds.associate { it.second to it.first }
         socket.emit(
             "sync:response",
             Json.encodeToString(
@@ -94,7 +101,8 @@ class LiveEditSocket @Inject constructor(private val socket: Socket) {
                             cardCount = it.totalCards,
                             cardsDueForReview = it.dueCards,
                             color1 = it.colors.first,
-                            color2 = it.colors.second
+                            color2 = it.colors.second,
+                            remoteId = deckRemoteIdMap[it.id]
                         )
                     },
                     cards = cards.map {
@@ -103,7 +111,8 @@ class LiveEditSocket @Inject constructor(private val socket: Socket) {
                             deckId = it.deckId,
                             front = it.front,
                             back = it.back,
-                            comment = it.comment
+                            comment = it.comment,
+                            remoteId = cardRemoteIdsMap[it.id]
                         )
                     }
                 )
@@ -215,13 +224,12 @@ class LiveEditSocket @Inject constructor(private val socket: Socket) {
         _isConnected.first { !it }
     }
 
-    suspend fun createKey() = withTimeout(REGISTRATION_TIMEOUT_MS) {
+    suspend fun registerWithTimeout(id: String) = withTimeout(REGISTRATION_TIMEOUT_MS) {
         if (!socket.connected()) return@withTimeout
         if (lastKey != null && key == null) {
             // It's disconnected, so it will reconnect by itself
             return@withTimeout
         }
-        val id = randomId(length = 6)
         register(id)
         id
     }
@@ -253,7 +261,7 @@ class LiveEditSocket @Inject constructor(private val socket: Socket) {
         }
     }
 
-    private fun randomId(length: Int): String {
+    fun createKey(length: Int): String {
         val chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
         return buildString {
             repeat(length) {

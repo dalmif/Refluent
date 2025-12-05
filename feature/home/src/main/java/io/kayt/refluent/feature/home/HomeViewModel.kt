@@ -31,7 +31,7 @@ class HomeViewModel @Inject constructor(
             liveEditRepository.getLiveEditState()
         ) { decks, liveEditState ->
             if (decks.isEmpty()) {
-                HomeUiState.Empty
+                HomeUiState.Empty(liveEditState)
             } else {
                 HomeUiState.Success(decks, liveEditState)
             }
@@ -39,7 +39,7 @@ class HomeViewModel @Inject constructor(
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = HomeUiState.Loading
+                initialValue = HomeUiState.Loading(LiveEditState.Disabled())
             )
 
     @OptIn(FlowPreview::class)
@@ -68,9 +68,9 @@ sealed interface SearchResult {
     data class SearchContent(val cards: List<SearchResultCard>) : SearchResult
 }
 
-sealed interface HomeUiState {
-
-    data object Empty : HomeUiState
-    data object Loading : HomeUiState
-    data class Success(val decks: List<Deck>, val liveEditState: LiveEditState) : HomeUiState
+sealed class HomeUiState(open val liveEditState: LiveEditState) {
+    data class Empty(override val liveEditState: LiveEditState) : HomeUiState(liveEditState)
+    data class Loading(override val liveEditState: LiveEditState) : HomeUiState(liveEditState)
+    data class Success(val decks: List<Deck>, override val liveEditState: LiveEditState) :
+        HomeUiState(liveEditState)
 }

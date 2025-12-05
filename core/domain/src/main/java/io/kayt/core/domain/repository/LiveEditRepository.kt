@@ -23,5 +23,10 @@ interface LiveEditRepository {
 
     fun getCurrentConnectionId(): String?
 
-    fun sendDecksAndCards(decks : List<Deck>, cards : List<Card>)
+    fun sendDecksAndCards(
+        decks: List<Deck>,
+        cards: List<Card>,
+        deckRemoteIds: List<Pair<String, Long>>,
+        cardRemoteIds: List<Pair<String, Long>>
+    )
 }

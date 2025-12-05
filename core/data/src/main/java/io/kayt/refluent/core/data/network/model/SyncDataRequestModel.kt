@@ -11,6 +11,7 @@ data class DeckDto(
     @SerialName("cardsDueForReview") val cardsDueForReview: Int,
     @SerialName("color1") val color1: Int,
     @SerialName("color2") val color2: Int,
+    @SerialName("remoteId") val remoteId: String?
 )
 
 @Serializable
@@ -20,6 +21,7 @@ data class CardDto(
     @SerialName("front") val front: String,
     @SerialName("back") val back: String,
     @SerialName("comment") val comment: String,
+    @SerialName("remoteId") val remoteId: String?
 )
 
 @Serializable

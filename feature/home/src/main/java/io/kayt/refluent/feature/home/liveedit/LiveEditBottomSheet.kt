@@ -1,10 +1,12 @@
 package io.kayt.refluent.feature.home.liveedit
 
+import android.content.ClipData
 import android.view.WindowManager
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,8 +23,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -36,6 +42,7 @@ import io.kayt.core.model.util.applyIf
 import io.kayt.refluent.core.ui.R
 import io.kayt.refluent.core.ui.component.button.PrimaryButton
 import io.kayt.refluent.core.ui.theme.AppTheme
+import kotlinx.coroutines.launch
 
 @Composable
 fun LiveEditModal(
@@ -82,10 +89,27 @@ private fun LiveEditContent(
             color = AppTheme.colors.textSecondary,
             modifier = Modifier.fillMaxWidth()
         )
+        val clipboardManager = LocalClipboard.current
+        val coroutine = rememberCoroutineScope()
         Row(
             modifier = Modifier
                 .padding(vertical = 24.dp)
                 .border(1.dp, color = AppTheme.colors.backgroundGrey, shape = CircleShape)
+                .clip(CircleShape)
+                .clickable(enabled = state is LiveEditUiState.Connected, onClick = {
+                    (state as? LiveEditUiState.Connected)?.connectionCode?.let {
+                        coroutine.launch {
+                            clipboardManager.setClipEntry(
+                                ClipEntry(
+                                    ClipData.newPlainText(
+                                        "Live Edit Key",
+                                        it
+                                    )
+                                )
+                            )
+                        }
+                    }
+                })
                 .padding(vertical = 11.dp, horizontal = 20.dp)
                 .align(Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically

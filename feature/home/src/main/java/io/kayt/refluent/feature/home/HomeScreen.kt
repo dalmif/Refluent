@@ -154,8 +154,8 @@ private fun HomeScreen(
                                     contentDescription = "Open in Browser"
                                 )
                                 // if connection is established and online
-                                val liveEditState = (state as? HomeUiState.Success)?.liveEditState
-                                if (state is HomeUiState.Success && liveEditState !is LiveEditState.Disabled) {
+                                val liveEditState = state.liveEditState
+                                if (liveEditState !is LiveEditState.Disabled) {
                                     Box(
                                         Modifier
                                             .offset(y = -2.dp, x = 2.dp)
@@ -298,7 +298,7 @@ private fun HomeScreen(
                                             }
                                         }
 
-                                        HomeUiState.Loading -> {}
+                                        is HomeUiState.Loading -> Unit
                                     }
                                 }
                             } else if (searchResult is SearchResult.SearchContent) {

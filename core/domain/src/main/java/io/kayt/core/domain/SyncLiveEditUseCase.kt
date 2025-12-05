@@ -38,27 +38,32 @@ class SyncLiveEditUseCase @Inject constructor(
                                 ?: ""
                         ).also { cardAddedFromRemote[operation.remoteId] = it }
 
-                        is CardOperation.Delete -> deckRepository.deleteCard(
+                        is CardOperation.Delete ->
                             when (val id = operation.cardId) {
                                 is CardOperation.CardId.LocalId -> id.id
-                                is CardOperation.CardId.RemoteId -> cardAddedFromRemote[id.id]!!
+                                is CardOperation.CardId.RemoteId -> cardAddedFromRemote[id.id]
+                            }?.let {
+                                deckRepository.deleteCard(it)
+                            }?.also {
+                                val cardID = operation.cardId
+                                if (cardID is CardOperation.CardId.RemoteId)
+                                    cardAddedFromRemote.remove(cardID.id)
                             }
-                        ).also {
-                            if (operation.cardId is CardOperation.CardId.RemoteId)
-                                cardAddedFromRemote.remove((operation.cardId as CardOperation.CardId.RemoteId).id)
-                        }
 
-                        is CardOperation.Update -> deckRepository.updateCard(
+                        is CardOperation.Update ->
                             when (val id = operation.cardId) {
                                 is CardOperation.CardId.LocalId -> id.id
-                                is CardOperation.CardId.RemoteId -> cardAddedFromRemote[id.id]!!
-                            },
-                            frontSide = operation.front,
-                            backSide = operation.back,
-                            comment = operation.comment,
-                            phonetic = vocabularyRepository.getPhoneticForWord(operation.front)
-                                ?: ""
-                        )
+                                is CardOperation.CardId.RemoteId -> cardAddedFromRemote[id.id]
+                            }?.let {
+                                deckRepository.updateCard(
+                                    it,
+                                    frontSide = operation.front,
+                                    backSide = operation.back,
+                                    comment = operation.comment,
+                                    phonetic = vocabularyRepository.getPhoneticForWord(operation.front)
+                                        ?: ""
+                                )
+                            }
 
                     }
                 }
@@ -84,7 +89,9 @@ class SyncLiveEditUseCase @Inject constructor(
                         SyncOperation.SyncRequested -> {
                             liveEditRepository.sendDecksAndCards(
                                 decks = deckRepository.getAllDeck().first(),
-                                cards = deckRepository.getAllCards().first()
+                                cards = deckRepository.getAllCards().first(),
+                                deckRemoteIds = decksAddedFromRemote.toList(),
+                                cardRemoteIds = cardAddedFromRemote.toList()
                             )
                         }
                     }

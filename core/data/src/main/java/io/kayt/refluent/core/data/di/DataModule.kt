@@ -23,9 +23,7 @@ abstract class DataModule {
         @Singleton
         fun provideSocket(): Socket {
             return IO.socket(
-                // TODO Update the url
-//            "https://live.refluent.app/",
-                "http://192.168.0.118:5100",
+                "https://live.refluent.app/",
                 IO.Options().apply {
                     reconnection = true
                     reconnectionAttempts = Int.MAX_VALUE

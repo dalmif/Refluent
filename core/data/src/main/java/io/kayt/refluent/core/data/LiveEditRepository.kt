@@ -8,6 +8,7 @@ import io.kayt.core.model.DeckOperation
 import io.kayt.core.model.LiveEditState
 import io.kayt.core.model.SyncOperation
 import io.kayt.refluent.core.data.network.LiveEditSocket
+import io.kayt.refluent.core.data.storage.UserStorage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -15,12 +16,16 @@ import javax.inject.Inject
 
 
 class LiveEditRepositoryImpl @Inject constructor(
-    private val liveEditSocket: LiveEditSocket
+    private val liveEditSocket: LiveEditSocket,
+    private val userStorage: UserStorage
 ) : LiveEditRepository {
 
     override suspend fun connect() {
         liveEditSocket.connect()
-        liveEditSocket.createKey()
+        val key = userStorage.getLastLiveEditKey() ?: liveEditSocket.createKey(6)
+        liveEditSocket.registerWithTimeout(key).also {
+            userStorage.saveLiveEditKey(key)
+        }
     }
 
     override fun observeCardOperation(): Flow<CardOperation> {
@@ -38,6 +43,7 @@ class LiveEditRepositoryImpl @Inject constructor(
 
     override suspend fun disconnect() {
         liveEditSocket.disconnect()
+        userStorage.clearLiveEditKey()
     }
 
     override fun getLiveEditState(): Flow<LiveEditState> {
@@ -57,9 +63,11 @@ class LiveEditRepositoryImpl @Inject constructor(
 
     override fun sendDecksAndCards(
         decks: List<Deck>,
-        cards: List<Card>
+        cards: List<Card>,
+        deckRemoteIds: List<Pair<String, Long>>,
+        cardRemoteIds: List<Pair<String, Long>>,
     ) {
-        liveEditSocket.sync(decks, cards)
+        liveEditSocket.sync(decks, cards, deckRemoteIds, cardRemoteIds)
     }
 
 }
