@@ -5,8 +5,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.kayt.core.domain.repository.LiveEditRepository
 import io.kayt.core.model.LiveEditState
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -18,12 +16,6 @@ class LiveEditViewModel @Inject constructor(
     private val liveEditRepository: LiveEditRepository
 ) :
     ViewModel() {
-    private val signalToRefreshConnectionState =
-        MutableSharedFlow<Unit>(
-            replay = 0,
-            extraBufferCapacity = 1,
-            onBufferOverflow = BufferOverflow.DROP_OLDEST
-        )
 
     val state =
         liveEditRepository.getLiveEditState().map { connectionState ->
