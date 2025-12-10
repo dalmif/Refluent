@@ -34,7 +34,7 @@ fun NavGraphBuilder.liveEdit(navController: NavController) {
                 .statusBarsPadding()
                 .navigationBarsPadding(),
             onDismissRequest = {
-                navController.popBackStack()
+                navController.navigateUp()
             }
         ) {
             LiveEditModal()

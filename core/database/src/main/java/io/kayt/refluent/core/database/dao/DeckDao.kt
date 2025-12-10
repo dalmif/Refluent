@@ -59,9 +59,9 @@ interface DeckDao {
     suspend fun getCardById(cardId: Long): CardEntity?
 
     @Query(
-        "SELECT d.uid, d.name, d.color1, d.color2, COUNT(c.uid) AS totalCards, " +
-            "SUM(CASE WHEN c.nextReview IS NOT NULL AND c.nextReview <= (CAST(strftime('%s','now') AS INTEGER) * 1000) + 1000 THEN 1 ELSE 0 END) AS dueCards " +
-            "FROM decks AS d LEFT JOIN cards AS c ON c.deckOwnerId = d.uid GROUP BY d.uid, d.name ORDER BY d.createdDateTime ASC;"
+        "SELECT d.uid, d.name, d.reviewMode, d.color1, d.color2, COUNT(c.uid) AS totalCards, " +
+                "SUM(CASE WHEN c.nextReview IS NOT NULL AND c.nextReview <= (CAST(strftime('%s','now') AS INTEGER) * 1000) + 1000 THEN 1 ELSE 0 END) AS dueCards " +
+                "FROM decks AS d LEFT JOIN cards AS c ON c.deckOwnerId = d.uid GROUP BY d.uid, d.name ORDER BY d.createdDateTime ASC;"
     )
     fun getDeckWithCardCounts(): Flow<List<DeckWithStats>>
 
@@ -77,7 +77,7 @@ interface DeckDao {
 
     @Query(
         """
-        SELECT d.uid, d.name, d.color1, d.color2,
+        SELECT d.uid, d.name, d.color1, d.color2, d.reviewMode,
            COUNT(c.uid) AS totalCards,
            SUM(
              CASE

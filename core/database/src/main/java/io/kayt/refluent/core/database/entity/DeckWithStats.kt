@@ -7,5 +7,6 @@ data class DeckWithStats(
     val color2: Int,
     val totalCards: Int,
     val dueCards: Int,
-    val nearestNextReview: Long?
+    val nearestNextReview: Long?,
+    val reviewMode: String?
 )

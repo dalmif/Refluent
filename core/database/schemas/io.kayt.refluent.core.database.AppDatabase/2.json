@@ -1,0 +1,189 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "90359146e8c9e85e68058aa4bdccbfd5",
+    "entities": [
+      {
+        "tableName": "decks",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uid` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `color1` INTEGER NOT NULL, `color2` INTEGER NOT NULL, `createdDateTime` INTEGER NOT NULL, `fromLang` TEXT, `toLang` TEXT, `reviewMode` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "uid",
+            "columnName": "uid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "color1",
+            "columnName": "color1",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "color2",
+            "columnName": "color2",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdDateTime",
+            "columnName": "createdDateTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fromLang",
+            "columnName": "fromLang",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "toLang",
+            "columnName": "toLang",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "reviewMode",
+            "columnName": "reviewMode",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "uid"
+          ]
+        }
+      },
+      {
+        "tableName": "cards",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uid` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `deckOwnerId` INTEGER NOT NULL, `frontSide` TEXT NOT NULL, `backSide` TEXT NOT NULL, `phonetic` TEXT NOT NULL, `comment` TEXT NOT NULL, `isArchived` INTEGER NOT NULL, `tags` TEXT NOT NULL, `nextReview` INTEGER NOT NULL, `interval` INTEGER NOT NULL, `repetition` INTEGER NOT NULL, `easeFactor` REAL NOT NULL, `lastReviewed` INTEGER, `createdDateTime` INTEGER NOT NULL, FOREIGN KEY(`deckOwnerId`) REFERENCES `decks`(`uid`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "uid",
+            "columnName": "uid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "deckOwnerId",
+            "columnName": "deckOwnerId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "frontSide",
+            "columnName": "frontSide",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "backSide",
+            "columnName": "backSide",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "phonetic",
+            "columnName": "phonetic",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "comment",
+            "columnName": "comment",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isArchived",
+            "columnName": "isArchived",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tags",
+            "columnName": "tags",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nextReview",
+            "columnName": "nextReview",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "interval",
+            "columnName": "interval",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "repetition",
+            "columnName": "repetition",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "easeFactor",
+            "columnName": "easeFactor",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastReviewed",
+            "columnName": "lastReviewed",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "createdDateTime",
+            "columnName": "createdDateTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "uid"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_cards_deckOwnerId",
+            "unique": false,
+            "columnNames": [
+              "deckOwnerId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_cards_deckOwnerId` ON `${TABLE_NAME}` (`deckOwnerId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "decks",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "deckOwnerId"
+            ],
+            "referencedColumns": [
+              "uid"
+            ]
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '90359146e8c9e85e68058aa4bdccbfd5')"
+    ]
+  }
+}

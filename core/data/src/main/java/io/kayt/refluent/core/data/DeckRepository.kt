@@ -3,8 +3,10 @@ package io.kayt.refluent.core.data
 import io.kayt.core.domain.repository.DeckRepository
 import io.kayt.core.model.Card
 import io.kayt.core.model.Deck
+import io.kayt.core.model.ReviewMode
 import io.kayt.core.model.SearchResultCard
 import io.kayt.refluent.core.database.AppDatabase
+import io.kayt.refluent.core.database.dto.ReviewModeDto
 import io.kayt.refluent.core.database.entity.CardEntity
 import io.kayt.refluent.core.database.entity.DeckEntity
 import kotlinx.coroutines.Dispatchers
@@ -51,22 +53,39 @@ class DeckRepositoryImpl @Inject constructor(
                 DeckEntity(
                     name = name,
                     color1 = colors.first,
-                    color2 = colors.second
+                    color2 = colors.second,
+                    reviewMode = ReviewMode.FrontFirst.toSavableString(),
+                    fromLang = null,
+                    toLang = null
                 )
             )
         }
     }
 
-    override suspend fun updateDeck(id: Long, name: String, colors: Pair<Int, Int>) {
+    override suspend fun updateDeck(
+        id: Long,
+        name: String,
+        colors: Pair<Int, Int>,
+        reviewMode: ReviewMode?
+    ) {
         withContext(Dispatchers.IO) {
             // First get the existing card to preserve SRS fields
             val existingCard = deckDataAccess.readDeckById(id)
             deckDataAccess.updateDeck(
-                existingCard.copy(
-                    name = name,
-                    color1 = colors.first,
-                    color2 = colors.second
-                )
+                if (reviewMode != null) {
+                    existingCard.copy(
+                        name = name,
+                        color1 = colors.first,
+                        color2 = colors.second,
+                        reviewMode = reviewMode.toSavableString()
+                    )
+                } else {
+                    existingCard.copy(
+                        name = name,
+                        color1 = colors.first,
+                        color2 = colors.second,
+                    )
+                }
             )
         }
     }
@@ -164,7 +183,7 @@ class DeckRepositoryImpl @Inject constructor(
     class AbortFlowException : Exception()
 
     @Suppress("EmptyCatchBlock", "SwallowedException")
-    override fun getDeckById(deckId: Long): Flow<Deck> = channelFlow {
+    override fun getDeckById(deckId: Long) = channelFlow {
         while (currentCoroutineContext().isActive) {
             try {
                 deckDataAccess.getDeckById(deckId).collectLatest {
@@ -188,7 +207,9 @@ class DeckRepositoryImpl @Inject constructor(
                     name = it.name,
                     colors = Pair(it.color1, it.color2),
                     totalCards = it.totalCards,
-                    dueCards = it.dueCards
+                    dueCards = it.dueCards,
+                    reviewMode = it.reviewMode?.let { ReviewModeDto.fromString(it).toReviewMode() }
+                        ?: ReviewMode.FrontFirst
                 )
             }
         }
@@ -225,7 +246,9 @@ class DeckRepositoryImpl @Inject constructor(
                 name = it.name,
                 colors = Pair(it.color1, it.color2),
                 totalCards = it.totalCards,
-                dueCards = it.dueCards
+                dueCards = it.dueCards,
+                reviewMode = it.reviewMode?.let { ReviewModeDto.fromString(it).toReviewMode() }
+                    ?: ReviewMode.FrontFirst
             )
         }
     }.flowOn(Dispatchers.IO)
@@ -391,4 +414,22 @@ class DeckRepositoryImpl @Inject constructor(
         comment = this.comment,
         tags = this.tags
     )
+
+    private fun ReviewMode.toSavableString(): String {
+        return when (this) {
+            ReviewMode.FrontFirst -> ReviewModeDto.FrontFirst
+            ReviewMode.BackFirst -> ReviewModeDto.BackFirst
+            ReviewMode.ShuffleSides -> ReviewModeDto.ShuffleSides
+            ReviewMode.DualSided -> ReviewModeDto.DualSided
+        }.key
+    }
+
+    private fun ReviewModeDto.toReviewMode(): ReviewMode {
+        return when (this) {
+            ReviewModeDto.FrontFirst -> ReviewMode.FrontFirst
+            ReviewModeDto.BackFirst -> ReviewMode.BackFirst
+            ReviewModeDto.ShuffleSides -> ReviewMode.ShuffleSides
+            ReviewModeDto.DualSided -> ReviewMode.DualSided
+        }
+    }
 }
