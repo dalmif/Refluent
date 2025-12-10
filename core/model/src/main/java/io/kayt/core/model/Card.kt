@@ -15,4 +15,11 @@ data class Card(
     val phonetic: String,
     val comment: String,
     val tags: String,
+    val backSideReview : BackSideCardReview?
+)
+
+data class BackSideCardReview(
+    val interval: Int,
+    val repetition: Int,
+    val easeFactor: Float,
 )

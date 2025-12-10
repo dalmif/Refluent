@@ -9,6 +9,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import io.kayt.refluent.core.database.entity.CardEntity
+import io.kayt.refluent.core.database.entity.CardWithBack
 import io.kayt.refluent.core.database.entity.CardWithDeck
 import io.kayt.refluent.core.database.entity.DeckEntity
 import io.kayt.refluent.core.database.entity.DeckWithStats
@@ -20,7 +21,7 @@ interface DeckDao {
     suspend fun getAll(): List<DeckEntity>
 
     @Query("SELECT * FROM decks WHERE uid = :deckId")
-    suspend fun readDeckById(deckId: Long): DeckEntity
+    suspend fun getDeckById(deckId: Long): DeckEntity
 
     @Insert
     suspend fun newDeck(deck: DeckEntity): Long
@@ -50,7 +51,7 @@ interface DeckDao {
     suspend fun deleteCardById(cardId: Long)
 
     @Query("SELECT * FROM cards WHERE deckOwnerId = :deckId ORDER BY uid DESC")
-    fun getCardsForDeck(deckId: Long): Flow<List<CardEntity>>
+    fun getCardsForDeck(deckId: Long): Flow<List<CardWithBack>>
 
     @Query("SELECT * FROM cards ORDER BY uid DESC")
     fun getAllCards(): Flow<List<CardEntity>>
@@ -60,8 +61,10 @@ interface DeckDao {
 
     @Query(
         "SELECT d.uid, d.name, d.reviewMode, d.color1, d.color2, COUNT(c.uid) AS totalCards, " +
-                "SUM(CASE WHEN c.nextReview IS NOT NULL AND c.nextReview <= (CAST(strftime('%s','now') AS INTEGER) * 1000) + 1000 THEN 1 ELSE 0 END) AS dueCards " +
-                "FROM decks AS d LEFT JOIN cards AS c ON c.deckOwnerId = d.uid GROUP BY d.uid, d.name ORDER BY d.createdDateTime ASC;"
+                "SUM(CASE WHEN c.nextReview IS NOT NULL AND c.nextReview <= (CAST(strftime('%s','now') AS INTEGER) * 1000) + 1000 THEN 1 ELSE 0 END) AS dueCards, " +
+                "SUM(CASE WHEN bc.nextReview IS NOT NULL AND bc.nextReview <= (CAST(strftime('%s','now') AS INTEGER) * 1000) + 1000 THEN 1 ELSE 0 END) AS backSideDueCards " +
+                "FROM decks AS d LEFT JOIN cards AS c ON c.deckOwnerId = d.uid LEFT JOIN backside_cards AS bc ON bc.deckOwnerId = d.uid " +
+                "GROUP BY d.uid, d.name ORDER BY d.createdDateTime ASC;"
     )
     fun getDeckWithCardCounts(): Flow<List<DeckWithStats>>
 
@@ -87,6 +90,13 @@ interface DeckDao {
              END
            ) AS dueCards,
            (
+             SELECT COUNT(*)
+             FROM backside_cards AS bc2
+             WHERE bc2.deckOwnerId = d.uid
+               AND bc2.nextReview IS NOT NULL
+               AND bc2.nextReview > (CAST(strftime('%s','now') AS INTEGER) * 1000) + 1000
+           ) AS backSideDueCards,
+           MIN((
              SELECT c2.nextReview
              FROM cards AS c2
              WHERE c2.deckOwnerId = d.uid
@@ -94,7 +104,16 @@ interface DeckDao {
                AND c2.nextReview > (CAST(strftime('%s','now') AS INTEGER) * 1000)
              ORDER BY c2.nextReview ASC
              LIMIT 1
-           ) AS nearestNextReview
+           ),
+           (
+             SELECT bc2.nextReview
+             FROM backside_cards AS bc2
+             WHERE bc2.deckOwnerId = d.uid
+               AND bc2.nextReview IS NOT NULL
+               AND bc2.nextReview > (CAST(strftime('%s','now') AS INTEGER) * 1000)
+             ORDER BY bc2.nextReview ASC
+             LIMIT 1
+           ))  AS nearestNextReview 
         FROM decks AS d
         LEFT JOIN cards AS c ON c.deckOwnerId = d.uid
         WHERE d.uid = :deckId
@@ -103,7 +122,7 @@ interface DeckDao {
         LIMIT 1
 """
     )
-    fun getDeckById(deckId: Long): Flow<DeckWithStats>
+    fun getDeckWithStatsById(deckId: Long): Flow<DeckWithStats>
 
     @Transaction
     @Query(

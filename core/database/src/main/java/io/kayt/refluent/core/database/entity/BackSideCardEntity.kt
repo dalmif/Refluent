@@ -30,7 +30,6 @@ data class BackSideCardEntity(
     val uid: Long = 0L,
     val cardId: Long,
     val deckOwnerId: Long,
-    val phonetic: String,
     val isArchived: Boolean,
 
     // SRS fields
