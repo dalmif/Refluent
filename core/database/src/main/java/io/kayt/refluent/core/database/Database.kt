@@ -6,6 +6,7 @@ import androidx.room.RoomDatabase
 import io.kayt.refluent.core.database.dao.DeckDao
 import io.kayt.refluent.core.database.dictionary.CmuDao
 import io.kayt.refluent.core.database.dictionary.Entry
+import io.kayt.refluent.core.database.entity.BackSideCardEntity
 import io.kayt.refluent.core.database.entity.CardEntity
 import io.kayt.refluent.core.database.entity.DeckEntity
 
@@ -13,7 +14,8 @@ import io.kayt.refluent.core.database.entity.DeckEntity
     version = 2,
     entities = [
         DeckEntity::class,
-        CardEntity::class
+        CardEntity::class,
+        BackSideCardEntity::class
     ],
     autoMigrations = [
         AutoMigration(from = 1, to = 2)
