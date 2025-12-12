@@ -34,8 +34,12 @@ data class BackSideCardEntity(
 
     // SRS fields
     val nextReview: Long = System.currentTimeMillis(), // initially today
-    val interval: Int = 1,
-    val repetition: Int = 0,
-    val easeFactor: Float = 2.5f,
+    val interval: Int = DEFAULT_INTERVAL,
+    val repetition: Int = DEFAULT_REPETITION,
+    val easeFactor: Float = DEFAULT_EASE_FACTOR,
     val lastReviewed: Long? = null,
 )
+
+const val DEFAULT_EASE_FACTOR = 2.5f
+const val DEFAULT_REPETITION = 0
+const val DEFAULT_INTERVAL = 1

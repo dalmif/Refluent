@@ -5,21 +5,10 @@ data class Card(
     val front: String,
     val back: String,
     val deckId: Long,
-    val interval: Int,
-    val repetition: Int,
-    val easeFactor: Float,
-    val dueDate: Long,
-    val lastReviewed: Long,
-    val createdDateTime: Long,
     val isArchived: Boolean,
     val phonetic: String,
     val comment: String,
     val tags: String,
-    val backSideReview : BackSideCardReview?
-)
-
-data class BackSideCardReview(
-    val interval: Int,
-    val repetition: Int,
-    val easeFactor: Float,
+    // This indicates that this card is not a real card, but it's made from a card to demonstrate a back first card
+    val isVirtualBackCard : Boolean = false
 )

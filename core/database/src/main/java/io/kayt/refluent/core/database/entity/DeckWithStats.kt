@@ -8,6 +8,11 @@ data class DeckWithStats(
     val totalCards: Int,
     val dueCards: Int,
     val backSideDueCards: Int,
-    val nearestNextReview: Long?,
-    val reviewMode: String?
+    val nearestFrontReview: Long?,
+    val nearestBackReview: Long?,
+    val reviewMode: String?,
+    // The cards that never reviewed from back side, will be considered as due for review
+    // in Back-first, Shuffle-sides and Dual-sided review modes
+    val neverReviewedBackCount: Int,
+    val overlappingDuePairs: Int
 )
