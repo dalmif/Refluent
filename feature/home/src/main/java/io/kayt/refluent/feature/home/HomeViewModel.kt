@@ -3,17 +3,17 @@ package io.kayt.refluent.feature.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.kayt.core.domain.repository.DeckRepository
+import io.kayt.core.domain.repository.LiveEditRepository
 import io.kayt.core.model.Deck
+import io.kayt.core.model.LiveEditState
 import io.kayt.core.model.SearchResultCard
-import io.kayt.refluent.core.data.DeckRepository
-import io.kayt.refluent.core.data.UserRepository
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -21,36 +21,34 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     deckRepository: DeckRepository,
-    userRepository: UserRepository,
+    liveEditRepository: LiveEditRepository
 ) : ViewModel() {
 
     val searchQuery = MutableStateFlow("")
     val state: StateFlow<HomeUiState> =
         combine(
-            flowOf(userRepository.getUsername()),
-            deckRepository.getAllDeck()
-        )
-        { user, decks ->
+            deckRepository.getAllDeck(),
+            liveEditRepository.getLiveEditState()
+        ) { decks, liveEditState ->
             if (decks.isEmpty()) {
-                HomeUiState.Empty(name = user ?: "")
+                HomeUiState.Empty(liveEditState)
             } else {
-                HomeUiState.Success(decks, name = user ?: "")
+                HomeUiState.Success(decks, liveEditState)
             }
         }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = HomeUiState.Loading
+                initialValue = HomeUiState.Loading(LiveEditState.Disabled())
             )
 
     @OptIn(FlowPreview::class)
     val searchResult = searchQuery
         .debounce(200)
         .mapLatest {
-            if (it.isBlank()){
+            if (it.isBlank()) {
                 SearchResult.NoSearch
-            }
-            else {
+            } else {
                 SearchResult.SearchContent(deckRepository.searchCardGlobally(it))
             }
         }
@@ -70,9 +68,9 @@ sealed interface SearchResult {
     data class SearchContent(val cards: List<SearchResultCard>) : SearchResult
 }
 
-sealed interface HomeUiState {
-
-    data class Empty(val name: String) : HomeUiState
-    data object Loading : HomeUiState
-    data class Success(val decks: List<Deck>, val name: String) : HomeUiState
+sealed class HomeUiState(open val liveEditState: LiveEditState) {
+    data class Empty(override val liveEditState: LiveEditState) : HomeUiState(liveEditState)
+    data class Loading(override val liveEditState: LiveEditState) : HomeUiState(liveEditState)
+    data class Success(val decks: List<Deck>, override val liveEditState: LiveEditState) :
+        HomeUiState(liveEditState)
 }

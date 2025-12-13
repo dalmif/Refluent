@@ -9,13 +9,23 @@ class UserStorage @Inject constructor(@ApplicationContext context: Context) {
 
     private val sharedPreferences = context.getSharedPreferences("User", Context.MODE_PRIVATE)
 
-    fun saveUsername(name: String) {
+    companion object {
+        const val LIVE_EDIT_KEY = "liveEditKey"
+    }
+
+    fun saveLiveEditKey(key: String) {
         sharedPreferences.edit {
-            putString("name", name)
+            putString(LIVE_EDIT_KEY, key)
         }
     }
 
-    fun getUsername(): String? {
-        return sharedPreferences.getString("name", null)
+    fun clearLiveEditKey() {
+        sharedPreferences.edit {
+            remove(LIVE_EDIT_KEY)
+        }
+    }
+
+    fun getLastLiveEditKey(): String? {
+        return sharedPreferences.getString(LIVE_EDIT_KEY, null)
     }
 }

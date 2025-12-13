@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.window.core.layout.WindowSizeClass
@@ -15,16 +16,13 @@ import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOW
 import androidx.window.core.layout.computeWindowSizeClass
 import androidx.window.layout.WindowMetricsCalculator
 import dagger.hilt.android.AndroidEntryPoint
-import io.kayt.refluent.core.data.UserRepository
 import io.kayt.refluent.core.ui.misc.provideTTSManager
 import io.kayt.refluent.core.ui.theme.AppTheme
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    @Inject
-    lateinit var userRepository: UserRepository
+    private val viewModel by viewModels<MainViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         requestedOrientation = if (compactScreen()) {
@@ -41,10 +39,11 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppTheme {
                 CompositionLocalProvider(provideTTSManager()) {
-                    MainUi(isLoggedIn = userRepository.getUsername() != null)
+                    MainUi()
                 }
             }
         }
+        viewModel.keepLiveEditAlwaysSync()
     }
 
     fun compactScreen(): Boolean {

@@ -1,8 +1,8 @@
-import kotlin.onFailure
 import java.util.Properties
 
 plugins {
     alias(libs.plugins.dalmif.android.library)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.dalmif.android.hilt)
 }
 
@@ -27,4 +27,9 @@ dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:database"))
     implementation(libs.generativeai)
+    implementation(libs.kotlin.serialization.json)
+
+    implementation("io.socket:socket.io-client:2.0.0") {
+        exclude(group = "org.json", module = "json")
+    }
 }

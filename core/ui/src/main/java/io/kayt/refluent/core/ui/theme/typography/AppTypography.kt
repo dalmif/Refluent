@@ -4,7 +4,7 @@ import androidx.compose.ui.text.TextStyle
 
 data class AppTypography(
     val greeting1: TextStyle,
-    val greeting2: TextStyle,
+    val large: TextStyle,
     val headline1: TextStyle,
     val headline2: TextStyle,
     val headline3: TextStyle,

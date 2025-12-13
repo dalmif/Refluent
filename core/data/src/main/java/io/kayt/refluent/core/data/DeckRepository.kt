@@ -1,5 +1,6 @@
 package io.kayt.refluent.core.data
 
+import io.kayt.core.domain.repository.DeckRepository
 import io.kayt.core.model.Card
 import io.kayt.core.model.Deck
 import io.kayt.core.model.SearchResultCard
@@ -20,19 +21,18 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import javax.inject.Singleton
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.seconds
 
-@Singleton
-class DeckRepository @Inject constructor(
+class DeckRepositoryImpl @Inject constructor(
     private val appDatabase: AppDatabase
-) {
+) : DeckRepository {
     private val deckDataAccess by lazy { appDatabase.deckDao() }
 
     companion object {
         // knobs you can tweak
         private const val MIN_EASE = 1.30f
+
         // I just changed the ease factor to see the cards more repeatedly, it's a bit aggressive
         // the default one is 2.5f
         private const val MAX_EASE = 1.7f
@@ -45,8 +45,8 @@ class DeckRepository @Inject constructor(
         private const val STEP2_MINUTES = 60L
     }
 
-    suspend fun addNewDeck(name: String, colors: Pair<Int, Int>) {
-        withContext(Dispatchers.IO) {
+    override suspend fun addNewDeck(name: String, colors: Pair<Int, Int>): Long {
+        return withContext(Dispatchers.IO) {
             deckDataAccess.newDeck(
                 DeckEntity(
                     name = name,
@@ -57,7 +57,7 @@ class DeckRepository @Inject constructor(
         }
     }
 
-    suspend fun updateDeck(id: Long, name: String, colors: Pair<Int, Int>) {
+    override suspend fun updateDeck(id: Long, name: String, colors: Pair<Int, Int>) {
         withContext(Dispatchers.IO) {
             // First get the existing card to preserve SRS fields
             val existingCard = deckDataAccess.readDeckById(id)
@@ -71,7 +71,7 @@ class DeckRepository @Inject constructor(
         }
     }
 
-    suspend fun removeDeck(id: Long) {
+    override suspend fun removeDeck(id: Long) {
         withContext(Dispatchers.IO) {
             // Delete all cards associated with this deck first
             deckDataAccess.deleteCardsByDeckId(id)
@@ -80,7 +80,7 @@ class DeckRepository @Inject constructor(
         }
     }
 
-    suspend fun searchCardGlobally(query: String): List<SearchResultCard> {
+    override suspend fun searchCardGlobally(query: String): List<SearchResultCard> {
         return withContext(Dispatchers.IO) {
             deckDataAccess.searchCardsWithDeck(query).map {
                 SearchResultCard(
@@ -109,14 +109,14 @@ class DeckRepository @Inject constructor(
         }
     }
 
-    suspend fun addNewCard(
+    override suspend fun addNewCard(
         deckId: Long,
         frontSide: String,
         backSide: String,
         comment: String,
         phonetic: String
-    ) {
-        withContext(Dispatchers.IO) {
+    ): Long {
+        return withContext(Dispatchers.IO) {
             deckDataAccess.insertCard(
                 CardEntity(
                     deckOwnerId = deckId,
@@ -131,7 +131,7 @@ class DeckRepository @Inject constructor(
         }
     }
 
-    suspend fun updateCard(
+    override suspend fun updateCard(
         cardId: Long,
         frontSide: String,
         backSide: String,
@@ -155,7 +155,7 @@ class DeckRepository @Inject constructor(
         }
     }
 
-    suspend fun deleteCard(cardId: Long) {
+    override suspend fun deleteCard(cardId: Long) {
         withContext(Dispatchers.IO) {
             deckDataAccess.deleteCardById(cardId)
         }
@@ -164,7 +164,7 @@ class DeckRepository @Inject constructor(
     class AbortFlowException : Exception()
 
     @Suppress("EmptyCatchBlock", "SwallowedException")
-    fun getDeckById(deckId: Long): Flow<Deck> = channelFlow {
+    override fun getDeckById(deckId: Long): Flow<Deck> = channelFlow {
         while (currentCoroutineContext().isActive) {
             try {
                 deckDataAccess.getDeckById(deckId).collectLatest {
@@ -195,7 +195,7 @@ class DeckRepository @Inject constructor(
         .flowOn(Dispatchers.IO)
 
     @Suppress("EmptyCatchBlock", "SwallowedException")
-    fun getAllDeck(): Flow<List<Deck>> = channelFlow {
+    override fun getAllDeck(): Flow<List<Deck>> = channelFlow {
         send(Unit)
         while (currentCoroutineContext().isActive) {
             try {
@@ -230,30 +230,17 @@ class DeckRepository @Inject constructor(
         }
     }.flowOn(Dispatchers.IO)
 
-    fun getCardsForDeck(deckId: Long): Flow<List<Card>> = deckDataAccess
+    override fun getAllCards(): Flow<List<Card>> {
+        return deckDataAccess.getAllCards().map { it.map { it.toCard() } }
+    }
+
+    override fun getCardsForDeck(deckId: Long): Flow<List<Card>> = deckDataAccess
         .getCardsForDeck(deckId)
         .map { cards ->
-            cards.map {
-                Card(
-                    id = it.uid,
-                    front = it.frontSide,
-                    back = it.backSide,
-                    deckId = it.deckOwnerId,
-                    interval = it.interval,
-                    repetition = it.repetition,
-                    easeFactor = it.easeFactor,
-                    dueDate = it.nextReview,
-                    lastReviewed = it.lastReviewed ?: 0L,
-                    createdDateTime = it.createdDateTime,
-                    isArchived = it.isArchived,
-                    phonetic = it.phonetic,
-                    comment = it.comment,
-                    tags = it.tags
-                )
-            }
+            cards.map { it.toCard() }
         }
 
-    suspend fun getCardById(cardId: Long): Card? {
+    override suspend fun getCardById(cardId: Long): Card? {
         return withContext(Dispatchers.IO) {
             deckDataAccess.getCardById(cardId)?.let { cardEntity ->
                 Card(
@@ -280,7 +267,7 @@ class DeckRepository @Inject constructor(
      * Returns only cards that are due for review for a given deck.
      * A card is due when it is not archived and its nextReview <= now.
      */
-    fun getDueCardsForDeck(deckId: Long): Flow<List<Card>> =
+    override fun getDueCardsForDeck(deckId: Long): Flow<List<Card>> =
         getCardsForDeck(deckId).map { cards ->
             cards.filter { !it.isArchived && it.dueDate <= System.currentTimeMillis() }
         }
@@ -290,22 +277,22 @@ class DeckRepository @Inject constructor(
      * @param card The current card snapshot (domain model)
      * @param remembered Whether the user remembered the card (true) or not (false)
      */
-    suspend fun saveReviewResult(card: Card, remembered: Boolean) {
+    override suspend fun saveReviewResult(card: Card, remembered: Boolean) {
         withContext(Dispatchers.IO) {
             val now = System.currentTimeMillis()
             val quality = if (remembered) 4 else 0 // 5 = perfect recall, 0 = complete failure
-            
+
             val currentInterval = card.interval
             val currentRepetition = card.repetition
             val currentEase = card.easeFactor
-            
+
             val (nextIntervalDays, nextRepetition, newEase) = calculateNextReview(
                 quality = quality,
                 currentInterval = currentInterval,
                 currentRepetition = currentRepetition,
                 currentEase = currentEase
             )
-            
+
             // Calculate next review time
             val nextReviewAt = if (nextIntervalDays == 0) {
                 // Learning phase - use minutes
@@ -318,7 +305,7 @@ class DeckRepository @Inject constructor(
                 // Mature phase - use days
                 now + (nextIntervalDays * 24 * 60 * 60 * 1000)
             }
-            
+
             val updatedEntity = CardEntity(
                 uid = card.id,
                 deckOwnerId = card.deckId,
@@ -339,7 +326,7 @@ class DeckRepository @Inject constructor(
             deckDataAccess.updateCard(updatedEntity)
         }
     }
-    
+
     /**
      * Calculate the next review parameters using SM-2 algorithm
      * @param quality Quality score (0-5, where 5 is perfect)
@@ -357,11 +344,11 @@ class DeckRepository @Inject constructor(
         var newEase = currentEase
         var nextRepetition = currentRepetition
         var nextIntervalDays: Int
-        
+
         // Update ease factor
         newEase = newEase + (0.1f - (5 - quality) * (0.08f + (5 - quality) * 0.02f))
         newEase = newEase.coerceIn(MIN_EASE, MAX_EASE)
-        
+
         // Apply lapse penalty if quality < 3
         if (quality < 3) {
             nextRepetition = 0
@@ -370,7 +357,7 @@ class DeckRepository @Inject constructor(
         } else {
             nextRepetition++
         }
-        
+
         // Calculate next interval
         when (nextRepetition) {
             0 -> nextIntervalDays = 0 // Learning phase
@@ -384,7 +371,24 @@ class DeckRepository @Inject constructor(
                 }
             }
         }
-        
+
         return Triple(nextIntervalDays, nextRepetition, newEase)
     }
+
+    private fun CardEntity.toCard() = Card(
+        id = this.uid,
+        front = this.frontSide,
+        back = this.backSide,
+        deckId = this.deckOwnerId,
+        interval = this.interval,
+        repetition = this.repetition,
+        easeFactor = this.easeFactor,
+        dueDate = this.nextReview,
+        lastReviewed = this.lastReviewed ?: 0L,
+        createdDateTime = this.createdDateTime,
+        isArchived = this.isArchived,
+        phonetic = this.phonetic,
+        comment = this.comment,
+        tags = this.tags
+    )
 }
