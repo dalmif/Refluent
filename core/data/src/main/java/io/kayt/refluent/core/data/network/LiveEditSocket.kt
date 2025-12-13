@@ -45,6 +45,7 @@ class LiveEditSocket @Inject constructor(private val socket: Socket) {
 
     // Store the last key that is used to register again with the same key when reconnect
     private var lastKey: String? = null
+    private var appVersion: Int? = null
     var connectionError: String? = null
         private set
 
@@ -199,7 +200,8 @@ class LiveEditSocket @Inject constructor(private val socket: Socket) {
     }
 
 
-    suspend fun connect() {
+    suspend fun connect(appVersionCode: Int) {
+        appVersion = appVersionCode
         // Emit this to put the state on loading
         if (!socket.connected()) {
             connectionError = null
@@ -225,41 +227,58 @@ class LiveEditSocket @Inject constructor(private val socket: Socket) {
     }
 
     suspend fun registerWithTimeout(id: String) = withTimeout(REGISTRATION_TIMEOUT_MS) {
-        if (!socket.connected()) return@withTimeout
-        if (lastKey != null && key == null) {
-            // It's disconnected, so it will reconnect by itself
-            return@withTimeout
+            if (!socket.connected()) return@withTimeout
+            if (lastKey != null && key == null) {
+                // It's disconnected, so it will reconnect by itself
+                return@withTimeout
+            }
+            register(id)
+            id
         }
-        register(id)
-        id
-    }
 
 
-    private suspend fun register(key: String) = suspendCancellableCoroutine { conn ->
-        val registeredOnCallback = object : Emitter.Listener {
-            override fun call(vararg args: Any?) {
-                if (socket.connected()) {
-                    this@LiveEditSocket.key = key
-                    // Emit "connected" again so listener can check for the key
-                    _isConnected.tryEmit(true)
+    private suspend fun register(key: String) =
+        suspendCancellableCoroutine { conn ->
+            val registeredOnCallback = object : Emitter.Listener {
+                override fun call(vararg args: Any?) {
+                    if (args.isNotEmpty()) {
+                        val json = (args.first() as? JSONObject)
+                        val requiredVersion = runCatching {
+                            json?.getInt("requiredVersion")
+                        }.getOrNull()
+                        val currentAppVersion = appVersion
+                        // If the version is less than required version then throw an exception
+                        if (requiredVersion != null && currentAppVersion != null && requiredVersion > currentAppVersion) {
+                            _isConnected.tryEmit(false)
+                            socket.disconnect()
+                            conn.resumeWith(Result.failure(AppUpdateRequiredException(requiredVersion)))
+                            socket.off("registered", this)
+                            return
+                        }
+                    }
+                    if (socket.connected()) {
+                        this@LiveEditSocket.key = key
+                        // Emit "connected" again so listener can check for the key
+                        _isConnected.tryEmit(true)
+                    }
+                    conn.resumeWith(Result.success(key))
+                    socket.off("registered", this)
                 }
-                conn.resumeWith(Result.success(key))
-                socket.off("registered", this)
+            }
+            socket.on("registered", registeredOnCallback).emit(
+                "register",
+                Json.encodeToString(
+                    RegistrationRequestModel(
+                        phoneId = key,
+                        type = "android",
+                        appVersion = appVersion
+                    )
+                ).toJsonObject()
+            )
+            conn.invokeOnCancellation {
+                socket.off("registered", registeredOnCallback)
             }
         }
-        socket.on("registered", registeredOnCallback).emit(
-            "register",
-            Json.encodeToString(
-                RegistrationRequestModel(
-                    phoneId = key,
-                    type = "android"
-                )
-            ).toJsonObject()
-        )
-        conn.invokeOnCancellation {
-            socket.off("registered", registeredOnCallback)
-        }
-    }
 
     fun createKey(length: Int): String {
         val chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
@@ -273,4 +292,7 @@ class LiveEditSocket @Inject constructor(private val socket: Socket) {
     private fun String.toJsonObject(): JSONObject {
         return JSONObject(this)
     }
+
+    class AppUpdateRequiredException(val requiredVersion: Int) :
+        Exception("App should be updated to version $requiredVersion")
 }
