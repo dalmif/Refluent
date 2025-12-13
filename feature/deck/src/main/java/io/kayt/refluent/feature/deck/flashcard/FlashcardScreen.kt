@@ -12,6 +12,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -211,6 +212,7 @@ private fun FlashcardScreen(
                                                     isFront = flipState.value.second.not()
                                                         .takeIf { flipState.value.first == index }
                                                         ?: true,
+                                                    isVirtualBackCard = card.isVirtualBackCard,
                                                     onFlipRequested = {
                                                         flipState.value =
                                                             if (flipState.value.first == index) {
@@ -440,9 +442,12 @@ private fun SwipeableCard(
     isOnTop: Boolean,
     isFront: Boolean,
     onFlipRequested: () -> Unit,
+    isVirtualBackCard: Boolean,
     isVisible: Boolean,
 ) {
-    val targetAngle = if (isFront) 0f else -180f
+    val front = if (isVirtualBackCard) -180f else 0f
+    val back = if (isVirtualBackCard) 0f else -180f
+    val targetAngle = if (isFront) front else back
     val rotation = animateFloatAsState(
         targetValue = targetAngle,
         animationSpec = tween(
@@ -476,60 +481,75 @@ private fun SwipeableCard(
             val isAngleLessThanUpright by remember { derivedStateOf { rotation.value >= -90f } }
             if (isAngleLessThanUpright) {
                 Column(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .alpha(if (isVisible) 1f else 0f),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text(
-                        text = card.front,
-                        style = AppTheme.typography.cardText,
-                        color = Color.Black.copy(alpha = if (isVisible) 1f else 0f),
-                        textAlign = TextAlign.Center
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Phonetic with audio icon
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.alpha(alpha = if (isVisible) 1f else 0f)
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = "/${card.phonetic}/".takeIf { card.phonetic.isNotBlank() } ?: "",
-                            style = AppTheme.typography.body1,
-                            color = Color(0xFFA4A4A4)
+                            text = card.front,
+                            style = AppTheme.typography.cardText,
+                            color = Color.Black.copy(alpha = if (isVisible) 1f else 0f),
+                            textAlign = TextAlign.Center
                         )
 
-                        Spacer(modifier = Modifier.width(8.dp))
-                        val ttfManager = LocalTtsManager.current
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = ripple(radius = 20.dp)
-                                ) {
-                                    ttfManager.speak(card.front)
-                                },
-                            contentAlignment = Alignment.Center
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Phonetic with audio icon
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.alpha(alpha = if (isVisible) 1f else 0f)
                         ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_light_sound_wave),
-                                contentDescription = "Play audio",
-                                modifier = Modifier.size(24.dp),
-                                tint = if (ttfManager.isAvailable) Color(0xFFB2B2B2) else Color(
-                                    0xFFCCCCCC
-                                )
+                            Text(
+                                text = "/${card.phonetic}/".takeIf { card.phonetic.isNotBlank() }
+                                    ?: "",
+                                style = AppTheme.typography.body1,
+                                color = Color(0xFFA4A4A4)
                             )
+
+                            Spacer(modifier = Modifier.width(8.dp))
+                            val ttfManager = LocalTtsManager.current
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = ripple(radius = 20.dp)
+                                    ) {
+                                        ttfManager.speak(card.front)
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_light_sound_wave),
+                                    contentDescription = "Play audio",
+                                    modifier = Modifier.size(24.dp),
+                                    tint = if (ttfManager.isAvailable) Color(0xFFB2B2B2) else Color(
+                                        0xFFCCCCCC
+                                    )
+                                )
+                            }
                         }
+                    }
+
+                    if (card.isVirtualBackCard) {
+                        commentSectionInCard(card)
                     }
                 }
             } else {
                 Column(
                     Modifier.graphicsLayer {
                         rotationY = 180f
-                    },
+                    }.alpha(if (isVisible) 1f else 0f),
                 ) {
                     Box(
                         modifier = Modifier
@@ -548,53 +568,64 @@ private fun SwipeableCard(
                             textAlign = TextAlign.Center
                         )
                     }
-                    val plainText =
-                        HtmlCompat.fromHtml(card.comment, HtmlCompat.FROM_HTML_MODE_LEGACY)
-                            .toString()
-                            .trim()
-                    if (plainText.isNotBlank()) {
-                        Column(
-                            Modifier
-                                .fillMaxWidth()
-                                .weight(2f)
-                                .padding(top = 20.dp)
-                        ) {
-                            Row {
-                                Icon(
-                                    painter = painterResource(R.drawable.ic_comment),
-                                    contentDescription = null,
-                                    tint = Color(0xFF515151),
-                                    modifier = Modifier
-                                        .offset(y = 2.dp)
-                                        .size(17.dp)
-                                )
-                                Text(
-                                    text = "Comment",
-                                    style = AppTheme.typography.headline4,
-                                    color = Color(0xFF515151),
-                                    modifier = Modifier
-                                        .padding(start = 4.dp)
-                                )
-                            }
-                            DashedDivider(
-                                color = Color(0xFFDFDFDF),
-                                thickness = 1.dp,
-                                modifier = Modifier
-                                    .padding(top = 15.dp)
-                            )
-                            val scrollState = rememberScrollState()
-                            Text(
-                                AnnotatedString.fromHtml(card.comment),
-                                modifier = Modifier
-                                    .verticalScroll(scrollState)
-                                    .fadingEdges(scrollState)
-                                    .padding(top = 20.dp),
-                                style = AppTheme.typography.body1.copy(fontFamily = DMSansVazir),
-                            )
-                        }
+                    if (!card.isVirtualBackCard) {
+                        commentSectionInCard(card)
                     }
                 }
             }
+        }
+    }
+}
+
+
+@Composable
+private fun ColumnScope.commentSectionInCard(
+    card: Card,
+    modifier: Modifier = Modifier
+) {
+    val plainText =
+        HtmlCompat.fromHtml(card.comment, HtmlCompat.FROM_HTML_MODE_LEGACY)
+            .toString()
+            .trim()
+    if (plainText.isNotBlank()) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .weight(2f)
+                .padding(top = 20.dp)
+        ) {
+            Row {
+                Icon(
+                    painter = painterResource(R.drawable.ic_comment),
+                    contentDescription = null,
+                    tint = Color(0xFF515151),
+                    modifier = Modifier
+                        .offset(y = 2.dp)
+                        .size(17.dp)
+                )
+                Text(
+                    text = "Comment",
+                    style = AppTheme.typography.headline4,
+                    color = Color(0xFF515151),
+                    modifier = Modifier
+                        .padding(start = 4.dp)
+                )
+            }
+            DashedDivider(
+                color = Color(0xFFDFDFDF),
+                thickness = 1.dp,
+                modifier = Modifier
+                    .padding(top = 15.dp)
+            )
+            val scrollState = rememberScrollState()
+            Text(
+                AnnotatedString.fromHtml(card.comment),
+                modifier = Modifier
+                    .verticalScroll(scrollState)
+                    .fadingEdges(scrollState)
+                    .padding(top = 20.dp),
+                style = AppTheme.typography.body1.copy(fontFamily = DMSansVazir),
+            )
         }
     }
 }

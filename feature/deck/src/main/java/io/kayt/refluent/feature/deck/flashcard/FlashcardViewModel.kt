@@ -25,7 +25,10 @@ class FlashcardViewModel @Inject constructor(
     private val deckId = savedStateHandle.toRoute<FlashcardRoute>().deckId
     val state: StateFlow<FlashcardUiState> = deckRepository.getDueCardsForDeck(deckId).take(1)
         .combine(deckRepository.getDeckById(deckId).take(1)) { cards, deck ->
-            FlashcardUiState.Success(cards.shuffled(), deck)
+            FlashcardUiState.Success(
+                cards = cards,
+                deck = deck
+            )
         }
         .stateIn(
             scope = viewModelScope,

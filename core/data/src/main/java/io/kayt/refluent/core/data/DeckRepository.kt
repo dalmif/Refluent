@@ -3,19 +3,28 @@ package io.kayt.refluent.core.data
 import io.kayt.core.domain.repository.DeckRepository
 import io.kayt.core.model.Card
 import io.kayt.core.model.Deck
+import io.kayt.core.model.ReviewMode
 import io.kayt.core.model.SearchResultCard
 import io.kayt.refluent.core.database.AppDatabase
+import io.kayt.refluent.core.database.dto.ReviewModeDto
+import io.kayt.refluent.core.database.entity.BackSideCardEntity
 import io.kayt.refluent.core.database.entity.CardEntity
+import io.kayt.refluent.core.database.entity.DEFAULT_EASE_FACTOR
+import io.kayt.refluent.core.database.entity.DEFAULT_INTERVAL
+import io.kayt.refluent.core.database.entity.DEFAULT_REPETITION
 import io.kayt.refluent.core.database.entity.DeckEntity
+import io.kayt.refluent.core.database.entity.DeckWithStats
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
@@ -51,22 +60,39 @@ class DeckRepositoryImpl @Inject constructor(
                 DeckEntity(
                     name = name,
                     color1 = colors.first,
-                    color2 = colors.second
+                    color2 = colors.second,
+                    reviewMode = ReviewMode.FrontFirst.toSavableString(),
+                    fromLang = null,
+                    toLang = null
                 )
             )
         }
     }
 
-    override suspend fun updateDeck(id: Long, name: String, colors: Pair<Int, Int>) {
+    override suspend fun updateDeck(
+        id: Long,
+        name: String,
+        colors: Pair<Int, Int>,
+        reviewMode: ReviewMode?
+    ) {
         withContext(Dispatchers.IO) {
             // First get the existing card to preserve SRS fields
-            val existingCard = deckDataAccess.readDeckById(id)
+            val existingCard = deckDataAccess.getDeckById(id)
             deckDataAccess.updateDeck(
-                existingCard.copy(
-                    name = name,
-                    color1 = colors.first,
-                    color2 = colors.second
-                )
+                if (reviewMode != null) {
+                    existingCard.copy(
+                        name = name,
+                        color1 = colors.first,
+                        color2 = colors.second,
+                        reviewMode = reviewMode.toSavableString()
+                    )
+                } else {
+                    existingCard.copy(
+                        name = name,
+                        color1 = colors.first,
+                        color2 = colors.second,
+                    )
+                }
             )
         }
     }
@@ -82,28 +108,22 @@ class DeckRepositoryImpl @Inject constructor(
 
     override suspend fun searchCardGlobally(query: String): List<SearchResultCard> {
         return withContext(Dispatchers.IO) {
-            deckDataAccess.searchCardsWithDeck(query).map {
+            deckDataAccess.searchCardsWithDeck(query).map { cardWithDeck ->
                 SearchResultCard(
-                    card = it.card.let {
+                    card = cardWithDeck.card.let {
                         Card(
                             id = it.uid,
                             front = it.frontSide,
                             back = it.backSide,
                             deckId = it.deckOwnerId,
-                            interval = it.interval,
-                            repetition = it.repetition,
-                            easeFactor = it.easeFactor,
-                            dueDate = it.nextReview,
-                            lastReviewed = it.lastReviewed ?: 0L,
-                            createdDateTime = it.createdDateTime,
                             isArchived = it.isArchived,
                             phonetic = it.phonetic,
                             comment = it.comment,
-                            tags = it.tags
+                            tags = it.tags,
                         )
                     },
-                    deckColor = it.deck.color1 to it.deck.color2,
-                    deckName = it.deck.name
+                    deckColor = cardWithDeck.deck.color1 to cardWithDeck.deck.color2,
+                    deckName = cardWithDeck.deck.name
                 )
             }
         }
@@ -120,8 +140,8 @@ class DeckRepositoryImpl @Inject constructor(
             deckDataAccess.insertCard(
                 CardEntity(
                     deckOwnerId = deckId,
-                    frontSide = frontSide,
-                    backSide = backSide,
+                    frontSide = frontSide.trim(),
+                    backSide = backSide.trim(),
                     comment = comment,
                     phonetic = phonetic,
                     isArchived = false,
@@ -164,12 +184,14 @@ class DeckRepositoryImpl @Inject constructor(
     class AbortFlowException : Exception()
 
     @Suppress("EmptyCatchBlock", "SwallowedException")
-    override fun getDeckById(deckId: Long): Flow<Deck> = channelFlow {
+    override fun getDeckById(deckId: Long) = channelFlow {
         while (currentCoroutineContext().isActive) {
             try {
-                deckDataAccess.getDeckById(deckId).collectLatest {
+                deckDataAccess.getDeckWithStatsById(deckId).collectLatest {
                     send(it)
-                    it.nearestNextReview?.plus(1.seconds.inWholeMilliseconds)?.let {
+                    val nearestNextReview =
+                        listOfNotNull(it.nearestFrontReview, it.nearestBackReview).minOrNull()
+                    nearestNextReview?.plus(1.seconds.inWholeMilliseconds)?.let {
                         val nextUpdate = it - System.currentTimeMillis()
                         if (nextUpdate > 0) {
                             delay(nextUpdate)
@@ -183,25 +205,43 @@ class DeckRepositoryImpl @Inject constructor(
     }
         .map {
             it.let {
+                val reviewMode = it.reviewMode?.let { ReviewModeDto.fromString(it).toReviewMode() }
+                    ?: ReviewMode.FrontFirst
                 Deck(
                     id = it.uid,
                     name = it.name,
                     colors = Pair(it.color1, it.color2),
                     totalCards = it.totalCards,
-                    dueCards = it.dueCards
+                    dueCards = it.calculateDueCards(reviewMode),
+                    reviewMode = reviewMode
                 )
             }
         }
         .flowOn(Dispatchers.IO)
+
+    private fun DeckWithStats.calculateDueCards(reviewMode: ReviewMode): Int {
+        return when (reviewMode) {
+            ReviewMode.FrontFirst -> dueCards
+            ReviewMode.BackFirst -> backSideDueCards + neverReviewedBackCount
+            ReviewMode.ShuffleSides -> dueCards +
+                    backSideDueCards +
+                    neverReviewedBackCount -
+                    overlappingDuePairs
+
+            ReviewMode.DualSided -> dueCards +
+                    backSideDueCards +
+                    neverReviewedBackCount
+        }
+    }
 
     @Suppress("EmptyCatchBlock", "SwallowedException")
     override fun getAllDeck(): Flow<List<Deck>> = channelFlow {
         send(Unit)
         while (currentCoroutineContext().isActive) {
             try {
+                // TODO: This function need to be updated to check the back side as well
                 deckDataAccess.getTheNearestDueCard()
                     .filterNotNull()
-                    .map { it.nextReview }
                     .distinctUntilChanged()
                     .collectLatest {
                         val nextUpdate = (it + 1_000) - System.currentTimeMillis()
@@ -220,12 +260,15 @@ class DeckRepositoryImpl @Inject constructor(
         deckDataAccess.getDeckWithCardCounts()
     }.map { list ->
         list.map {
+            val reviewMode = it.reviewMode?.let { ReviewModeDto.fromString(it).toReviewMode() }
+                ?: ReviewMode.FrontFirst
             Deck(
                 id = it.uid,
                 name = it.name,
                 colors = Pair(it.color1, it.color2),
                 totalCards = it.totalCards,
-                dueCards = it.dueCards
+                dueCards = it.calculateDueCards(reviewMode),
+                reviewMode = reviewMode
             )
         }
     }.flowOn(Dispatchers.IO)
@@ -237,7 +280,7 @@ class DeckRepositoryImpl @Inject constructor(
     override fun getCardsForDeck(deckId: Long): Flow<List<Card>> = deckDataAccess
         .getCardsForDeck(deckId)
         .map { cards ->
-            cards.map { it.toCard() }
+            cards.map { it.card.toCard() }
         }
 
     override suspend fun getCardById(cardId: Long): Card? {
@@ -248,12 +291,6 @@ class DeckRepositoryImpl @Inject constructor(
                     front = cardEntity.frontSide,
                     back = cardEntity.backSide,
                     deckId = cardEntity.deckOwnerId,
-                    interval = cardEntity.interval,
-                    repetition = cardEntity.repetition,
-                    easeFactor = cardEntity.easeFactor,
-                    dueDate = cardEntity.nextReview,
-                    lastReviewed = cardEntity.lastReviewed ?: 0L,
-                    createdDateTime = cardEntity.createdDateTime,
                     isArchived = cardEntity.isArchived,
                     phonetic = cardEntity.phonetic,
                     comment = cardEntity.comment,
@@ -267,10 +304,57 @@ class DeckRepositoryImpl @Inject constructor(
      * Returns only cards that are due for review for a given deck.
      * A card is due when it is not archived and its nextReview <= now.
      */
-    override fun getDueCardsForDeck(deckId: Long): Flow<List<Card>> =
-        getCardsForDeck(deckId).map { cards ->
-            cards.filter { !it.isArchived && it.dueDate <= System.currentTimeMillis() }
-        }
+    override fun getDueCardsForDeck(deckId: Long): Flow<List<Card>> {
+        return deckDataAccess.getCardsForDeck(deckId)
+            .combine(flow { emit(deckDataAccess.getDeckById(deckId)) }) { cards, deck ->
+                cards to (deck.reviewMode?.let { ReviewModeDto.fromString(it) }
+                    ?: ReviewModeDto.FrontFirst)
+            }
+            .map { (cards, reviewMode) ->
+                val now = System.currentTimeMillis()
+                val realCards = cards.map { it.card }
+                val virtualCards = cards.mapNotNull { cardWithBack ->
+                    cardWithBack.back?.let { back ->
+                        val card = cardWithBack.card
+                        card.copy(
+                            frontSide = card.frontSide,
+                            backSide = card.backSide,
+                            repetition = back.repetition,
+                            interval = back.interval,
+                            easeFactor = back.easeFactor,
+                            nextReview = back.nextReview,
+                            lastReviewed = back.lastReviewed
+                        ).apply { isVirtual = true }
+                    }
+                } + cards.filter { it.back == null }.map {
+                    it.card.copy(
+                        frontSide = it.card.frontSide,
+                        backSide = it.card.backSide,
+                        repetition = DEFAULT_REPETITION,
+                        interval = DEFAULT_INTERVAL,
+                        easeFactor = DEFAULT_EASE_FACTOR,
+                        nextReview = now,
+                        lastReviewed = null,
+                    ).apply { isVirtual = true }
+                }
+                val sortedCard = when (reviewMode) {
+                    ReviewModeDto.FrontFirst -> realCards.filter { it.nextReview <= now }
+                    ReviewModeDto.BackFirst -> virtualCards.filter { it.nextReview <= now }
+                    ReviewModeDto.ShuffleSides -> {
+                        (realCards + virtualCards)
+                            .groupBy { it.uid }
+                            .mapValues { it.value.minBy { it.nextReview } }
+                            .filter { it.value.nextReview <= now }
+                            .values
+                            .toList()
+                    }
+
+                    ReviewModeDto.DualSided -> realCards.filter { it.nextReview <= now } + virtualCards.filter { it.nextReview <= now }
+                }
+
+                sortedCard.map { it.toCard(isVirtualBackCard = it.isVirtual) }.shuffled()
+            }
+    }
 
     /**
      * Save the spaced-repetition review result for a card using SM-2 algorithm.
@@ -282,48 +366,78 @@ class DeckRepositoryImpl @Inject constructor(
             val now = System.currentTimeMillis()
             val quality = if (remembered) 4 else 0 // 5 = perfect recall, 0 = complete failure
 
-            val currentInterval = card.interval
-            val currentRepetition = card.repetition
-            val currentEase = card.easeFactor
+            if (card.isVirtualBackCard) {
+                val existingBackSide = deckDataAccess.getBackSideCardById(cardId = card.id)
+                val currentInterval = existingBackSide?.interval ?: DEFAULT_INTERVAL
+                val currentRepetition = existingBackSide?.repetition ?: DEFAULT_REPETITION
+                val currentEase = existingBackSide?.easeFactor ?: DEFAULT_EASE_FACTOR
 
-            val (nextIntervalDays, nextRepetition, newEase) = calculateNextReview(
-                quality = quality,
-                currentInterval = currentInterval,
-                currentRepetition = currentRepetition,
-                currentEase = currentEase
-            )
+                val (nextIntervalDays, nextRepetition, newEase) = calculateNextReview(
+                    quality = quality,
+                    currentInterval = currentInterval,
+                    currentRepetition = currentRepetition,
+                    currentEase = currentEase
+                )
 
-            // Calculate next review time
-            val nextReviewAt = if (nextIntervalDays == 0) {
-                // Learning phase - use minutes
-                if (nextRepetition == 0) {
-                    now + (STEP1_MINUTES * 60 * 1000) // 10 minutes
+                // Calculate next review time
+                val nextReviewAt = if (nextIntervalDays == 0) {
+                    // Learning phase - use minutes
+                    if (nextRepetition == 0) {
+                        now + (STEP1_MINUTES * 60 * 1000) // 10 minutes
+                    } else {
+                        now + (STEP2_MINUTES * 60 * 1000) // 60 minutes
+                    }
                 } else {
-                    now + (STEP2_MINUTES * 60 * 1000) // 60 minutes
+                    // Mature phase - use days
+                    now + (nextIntervalDays * 24 * 60 * 60 * 1000)
                 }
+                val backSide = BackSideCardEntity(
+                    uid = existingBackSide?.uid ?: 0L,
+                    cardId = card.id,
+                    deckOwnerId = card.deckId,
+                    isArchived = false,
+                    nextReview = nextReviewAt,
+                    interval = nextIntervalDays,
+                    repetition = nextRepetition,
+                    easeFactor = newEase,
+                    lastReviewed = now
+                )
+                deckDataAccess.insertBackSideCard(backSide)
             } else {
-                // Mature phase - use days
-                now + (nextIntervalDays * 24 * 60 * 60 * 1000)
+                val cardDto = deckDataAccess.getCardById(cardId = card.id) ?: return@withContext
+                val currentInterval = cardDto.interval
+                val currentRepetition = cardDto.repetition
+                val currentEase = cardDto.easeFactor
+
+                val (nextIntervalDays, nextRepetition, newEase) = calculateNextReview(
+                    quality = quality,
+                    currentInterval = currentInterval,
+                    currentRepetition = currentRepetition,
+                    currentEase = currentEase
+                )
+
+                // Calculate next review time
+                val nextReviewAt = if (nextIntervalDays == 0) {
+                    // Learning phase - use minutes
+                    if (nextRepetition == 0) {
+                        now + (STEP1_MINUTES * 60 * 1000) // 10 minutes
+                    } else {
+                        now + (STEP2_MINUTES * 60 * 1000) // 60 minutes
+                    }
+                } else {
+                    // Mature phase - use days
+                    now + (nextIntervalDays * 24 * 60 * 60 * 1000)
+                }
+
+                val updatedEntity = cardDto.copy(
+                    nextReview = nextReviewAt,
+                    interval = nextIntervalDays,
+                    repetition = nextRepetition,
+                    easeFactor = newEase,
+                    lastReviewed = now,
+                )
+                deckDataAccess.updateCard(updatedEntity)
             }
-
-            val updatedEntity = CardEntity(
-                uid = card.id,
-                deckOwnerId = card.deckId,
-                frontSide = card.front,
-                backSide = card.back,
-                phonetic = card.phonetic,
-                comment = card.comment,
-                isArchived = card.isArchived,
-                tags = card.tags,
-                nextReview = nextReviewAt,
-                interval = nextIntervalDays,
-                repetition = nextRepetition,
-                easeFactor = newEase,
-                lastReviewed = now,
-                createdDateTime = card.createdDateTime
-            )
-
-            deckDataAccess.updateCard(updatedEntity)
         }
     }
 
@@ -375,20 +489,33 @@ class DeckRepositoryImpl @Inject constructor(
         return Triple(nextIntervalDays, nextRepetition, newEase)
     }
 
-    private fun CardEntity.toCard() = Card(
+    private fun CardEntity.toCard(isVirtualBackCard: Boolean = false) = Card(
         id = this.uid,
         front = this.frontSide,
         back = this.backSide,
         deckId = this.deckOwnerId,
-        interval = this.interval,
-        repetition = this.repetition,
-        easeFactor = this.easeFactor,
-        dueDate = this.nextReview,
-        lastReviewed = this.lastReviewed ?: 0L,
-        createdDateTime = this.createdDateTime,
         isArchived = this.isArchived,
         phonetic = this.phonetic,
         comment = this.comment,
-        tags = this.tags
+        tags = this.tags,
+        isVirtualBackCard = isVirtualBackCard
     )
+
+    private fun ReviewMode.toSavableString(): String {
+        return when (this) {
+            ReviewMode.FrontFirst -> ReviewModeDto.FrontFirst
+            ReviewMode.BackFirst -> ReviewModeDto.BackFirst
+            ReviewMode.ShuffleSides -> ReviewModeDto.ShuffleSides
+            ReviewMode.DualSided -> ReviewModeDto.DualSided
+        }.key
+    }
+
+    private fun ReviewModeDto.toReviewMode(): ReviewMode {
+        return when (this) {
+            ReviewModeDto.FrontFirst -> ReviewMode.FrontFirst
+            ReviewModeDto.BackFirst -> ReviewMode.BackFirst
+            ReviewModeDto.ShuffleSides -> ReviewMode.ShuffleSides
+            ReviewModeDto.DualSided -> ReviewMode.DualSided
+        }
+    }
 }

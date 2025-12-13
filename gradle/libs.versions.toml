@@ -179,6 +179,7 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "dagger" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 grgit = { id = "org.ajoberstar.grgit", version.ref = "grgit" }
+room = { id = "androidx.room", version.ref = "roomRuntime" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 sentry = { id = "io.sentry.android.gradle", version.ref = "sentry-plugin" }
 google-service-plugin = { id = "com.google.gms.google-services", version.ref = "google-service-plugin" }

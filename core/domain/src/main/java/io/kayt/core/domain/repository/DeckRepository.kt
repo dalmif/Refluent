@@ -2,14 +2,20 @@ package io.kayt.core.domain.repository
 
 import io.kayt.core.model.Card
 import io.kayt.core.model.Deck
+import io.kayt.core.model.ReviewMode
 import io.kayt.core.model.SearchResultCard
 import kotlinx.coroutines.flow.Flow
 
 interface DeckRepository {
 
-    suspend fun addNewDeck(name: String, colors: Pair<Int, Int>) : Long
+    suspend fun addNewDeck(name: String, colors: Pair<Int, Int>): Long
 
-    suspend fun updateDeck(id: Long, name: String, colors: Pair<Int, Int>)
+    suspend fun updateDeck(
+        id: Long,
+        name: String,
+        colors: Pair<Int, Int>,
+        reviewMode: ReviewMode? = null
+    )
 
     suspend fun removeDeck(id: Long)
 
@@ -21,7 +27,7 @@ interface DeckRepository {
         backSide: String,
         comment: String,
         phonetic: String
-    ) : Long
+    ): Long
 
     suspend fun updateCard(
         cardId: Long,

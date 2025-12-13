@@ -1,5 +1,6 @@
 package io.kayt.refluent.feature.deck
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -18,6 +19,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -33,9 +35,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -58,6 +66,7 @@ import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -66,6 +75,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.kayt.core.model.ReviewMode
 import io.kayt.core.model.util.applyIf
 import io.kayt.refluent.core.ui.R
 import io.kayt.refluent.core.ui.component.DeckEntry
@@ -94,7 +104,8 @@ fun DeckScreen(
         state = state,
         onAddCardClick = onAddCardClick,
         onStudyClick = onStudyClick,
-        onEditCardClick = onEditCardClick
+        onEditCardClick = onEditCardClick,
+        onReviewModeChange = deckViewModel::updateReviewMode
     )
 }
 
@@ -104,7 +115,8 @@ private fun DeckScreen(
     state: DeckUiState,
     onAddCardClick: () -> Unit,
     onEditCardClick: (cardId: Long) -> Unit,
-    onStudyClick: () -> Unit
+    onStudyClick: () -> Unit,
+    onReviewModeChange: (ReviewMode) -> Unit
 ) {
     with(LocalSharedTransitionScope.current) {
         if (state is DeckUiState.Success) {
@@ -208,7 +220,8 @@ private fun DeckScreen(
                                         Modifier.sharedElement(
                                             rememberSharedContentState(key = "deck_due_cards_${state.deck.id}"),
                                             animatedVisibilityScope = LocalNavAnimatedVisibilityScope.current
-                                        )
+                                        ).height(80.dp),
+                                        contentAlignment = Alignment.BottomEnd
                                     ) {
                                         if (state.deck.totalCards == 0 || state.deck.dueCards > 0) {
                                             Text(
@@ -339,28 +352,70 @@ private fun DeckScreen(
                                 .background(AppTheme.colors.background)
                         ) {
                             if (state.cards.isNotEmpty()) {
-                                LazyColumn(
-                                    state = lazyColumnState,
-                                    modifier = Modifier
-                                        .nestedScroll(topmostAppBarState.nestedScrollConnection)
-                                ) {
-                                    items(state.cards.size) {
-                                        val card = state.cards[it]
-                                        DeckEntry(
-                                            card = card,
-                                            modifier = Modifier.clickable {
-                                                onEditCardClick(state.cards[it].id)
-                                            }
-                                                .applyIf(it == 0) {
-                                                    padding(top = 10.dp)
-                                                }.applyIf(it == state.cards.lastIndex) {
-                                                    padding(bottom = 10.dp)
+                                var isSettingVisible by remember { mutableStateOf(false) }
+                                BackHandler(isSettingVisible) {
+                                    isSettingVisible = false
+                                }
+                                AnimatedContent(
+                                    isSettingVisible,
+                                    transitionSpec = {
+                                        if (!initialState) {
+                                            slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
+                                        } else {
+                                            slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
+                                        }
+                                    }
+                                ) { settingVisible ->
+                                    if (!settingVisible) {
+                                        LazyColumn(
+                                            state = lazyColumnState,
+                                            verticalArrangement = TopWithFooter,
+                                            modifier = Modifier
+                                                .fillMaxHeight()
+                                                .nestedScroll(topmostAppBarState.nestedScrollConnection)
+                                        ) {
+
+                                            items(state.cards.size) {
+                                                val card = state.cards[it]
+                                                DeckEntry(
+                                                    card = card,
+                                                    modifier = Modifier.clickable {
+                                                        onEditCardClick(state.cards[it].id)
+                                                    }
+                                                        .applyIf(it == 0) {
+                                                            padding(top = 10.dp)
+                                                        }.applyIf(it == state.cards.lastIndex) {
+                                                            padding(bottom = 10.dp)
+                                                        }
+                                                )
+                                                if (it != state.cards.lastIndex) {
+                                                    HorizontalDivider(
+                                                        modifier = Modifier.padding(horizontal = 10.dp),
+                                                        color = Color(0xFFEFEFEF)
+                                                    )
                                                 }
-                                        )
-                                        HorizontalDivider(
-                                            modifier = Modifier.padding(horizontal = 10.dp),
-                                            color = Color(0xFFEFEFEF)
-                                        )
+                                            }
+                                            item {
+                                                ReviewModeItem(
+                                                    currentReviewMode = state.deck.reviewMode,
+                                                    onClick = { isSettingVisible = true }
+                                                )
+                                            }
+                                        }
+                                    } else {
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .nestedScroll(topmostAppBarState.nestedScrollConnection)
+                                        ) {
+                                            SettingScreen(
+                                                onReviewModeOptionClick = {
+                                                    onReviewModeChange(it)
+                                                },
+                                                selected = state.settings.reviewMode,
+                                                onBackClick = { isSettingVisible = false }
+                                            )
+                                        }
                                     }
                                 }
                             } else {
@@ -410,4 +465,188 @@ private fun DeckScreen(
             }
         }
     }
+}
+
+@Composable
+private fun ReviewModeItem(
+    currentReviewMode: ReviewMode,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(Color(0xFFF8F5E1))
+            .clickable(onClick = onClick)
+            .padding(top = 23.dp, bottom = 20.dp)
+            .padding(start = 19.dp, end = 13.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        Column {
+            Text(
+                text = "Change your review mode",
+                color = Color.Black,
+                style = AppTheme.typography.body1.copy(
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            )
+            Spacer(modifier = Modifier.height(5.dp))
+            Text(
+                text = currentReviewMode.asTitle(),
+                color = Color(0xFFA9A066),
+                style = AppTheme.typography.body1.copy(
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Normal
+                )
+            )
+        }
+        Spacer(modifier = Modifier.weight(1f))
+
+        Box(
+            modifier = Modifier
+                .clip(CircleShape)
+                .background(Color(0xFF9F8D1A))
+                .clickable(onClick = onClick)
+                .size(44.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_arrow_forward),
+                contentDescription = null,
+                tint = Color.White
+            )
+        }
+    }
+}
+
+@Composable
+private fun SettingScreen(
+    modifier: Modifier = Modifier,
+    onBackClick: () -> Unit,
+    selected: ReviewMode,
+    onReviewModeOptionClick: (ReviewMode) -> Unit
+) {
+    Column(modifier = modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 8.dp)
+                .padding(top = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onBackClick) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_arrow_backward),
+                    contentDescription = null
+                )
+            }
+            Text(
+                "Review Mode",
+                style = AppTheme.typography.body1.copy(
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            )
+        }
+        Column(Modifier.verticalScroll(rememberScrollState())) {
+            val options = ReviewMode.entries
+            options.mapIndexed { index, item ->
+                ReviewModeOption(
+                    title = item.asTitle(),
+                    description = item.asDescription(),
+                    selected = selected == item,
+                    onClick = {
+                        onReviewModeOptionClick(item)
+                    }
+                )
+                if (options.lastIndex != index) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 30.dp),
+                        color = Color(0xFFF4F4F4)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReviewModeOption(
+    title: String,
+    description: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 12.dp)
+    ) {
+        RadioButton(
+            selected = selected,
+            onClick = onClick,
+            colors = RadioButtonDefaults.colors(
+                selectedColor = Color.Black.copy(alpha = 0.8f)
+            )
+        )
+        Column {
+            Text(
+                title,
+                style = AppTheme.typography.body1.copy(
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Normal
+                )
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                description,
+                style = AppTheme.typography.body1.copy(
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Normal
+                ),
+                color = Color(0xFF717171)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ReviewMode.asTitle(): String {
+    return when (this) {
+        ReviewMode.FrontFirst -> "Front-First Mode"
+        ReviewMode.BackFirst -> "Back-First Mode"
+        ReviewMode.ShuffleSides -> "Shuffle Sides"
+        ReviewMode.DualSided -> "Dual-Sided"
+    }
+}
+
+@Composable
+private fun ReviewMode.asDescription(): String {
+    return when (this) {
+        ReviewMode.FrontFirst -> "Review all cards starting from the front side for a standard, forward-direction practice"
+        ReviewMode.BackFirst -> "Review all cards with the back shown as the front. A complete flipped-session for testing deeper recall."
+        ReviewMode.ShuffleSides -> "Each card is randomly shown from either its front or back, creating a varied, unpredictable review session."
+        ReviewMode.DualSided -> "Both sides of every card are included as separate prompts. You’ll see every front and every back, all shuffled together."
+    }
+}
+
+
+object TopWithFooter : Arrangement.Vertical {
+    override fun Density.arrange(
+        totalSize: Int,
+        sizes: IntArray,
+        outPositions: IntArray
+    ) {
+        var y = 0
+        sizes.forEachIndexed { index, size ->
+            outPositions[index] = y
+            y += size
+        }
+        if (y < totalSize) {
+            val lastIndex = outPositions.lastIndex
+            outPositions[lastIndex] = totalSize - sizes.last()
+        }
+    }
+
 }

@@ -13,4 +13,5 @@ plugins {
     alias(libs.plugins.kotlin.jvm) apply false
     alias(libs.plugins.google.service.plugin) apply false
     alias(libs.plugins.google.crashlytics.plugin) apply false
+    alias(libs.plugins.room) apply false
 }
