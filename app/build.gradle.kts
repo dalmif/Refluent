@@ -1,3 +1,4 @@
+import io.kayt.extensions.libs
 import java.io.FileInputStream
 import java.util.Properties
 
@@ -13,12 +14,12 @@ plugins {
 
 android {
     namespace = "io.kayt.refluent"
-    compileSdk = 36
+    compileSdk = libs.versions.compileSdkVersion.get().toInt()
 
     defaultConfig {
         applicationId = "app.refluent"
         minSdk = 28
-        targetSdk = 36
+        targetSdk = libs.versions.targetSdkVersion.get().toInt()
         versionCode = gitVersion.generateVersionCode()
         versionName = "1.1.0"
 
