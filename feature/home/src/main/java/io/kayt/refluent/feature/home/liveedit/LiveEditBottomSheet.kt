@@ -1,6 +1,9 @@
 package io.kayt.refluent.feature.home.liveedit
 
+import android.content.ActivityNotFoundException
 import android.content.ClipData
+import android.content.Intent
+import android.net.Uri
 import android.view.WindowManager
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedContent
@@ -21,14 +24,19 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -40,6 +48,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import io.kayt.core.model.util.applyIf
 import io.kayt.refluent.core.ui.R
+import io.kayt.refluent.core.ui.component.AlertDialog
 import io.kayt.refluent.core.ui.component.button.PrimaryButton
 import io.kayt.refluent.core.ui.theme.AppTheme
 import kotlinx.coroutines.launch
@@ -49,6 +58,21 @@ fun LiveEditModal(
     viewModel: LiveEditViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+
+    var isAppUpdateDialogVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        viewModel.events.collect {
+            when (it) {
+                LiveEditEvent.ShowAppVersionNeedUpdate -> isAppUpdateDialogVisible = true
+            }
+        }
+    }
+
+    AppUpdateDialog(
+        isAppUpdateDialogVisible,
+        onDismissRequested = { isAppUpdateDialogVisible = false }
+    )
+
     LiveEditContent(
         state,
         onConnectClick = viewModel::connect,
@@ -62,6 +86,47 @@ fun LiveEditModal(
         onDispose {
             activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
+    }
+}
+
+@Composable
+private fun AppUpdateDialog(
+    isAppUpdateDialogVisible: Boolean,
+    onDismissRequested: () -> Unit
+) {
+    if (isAppUpdateDialogVisible) {
+        val context = LocalContext.current
+        AlertDialog(
+            title = "Update Required",
+            description = "To use this feature you need to update to the latest version",
+            primaryButtonText = "Update",
+            secondaryButtonText = "Cancel",
+            primaryButtonAction = {
+                val appId = "app.refluent"
+                try {
+                    val intent = Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse("market://details?id=$appId")
+                    )
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    context.startActivity(intent)
+                } catch (_: ActivityNotFoundException) {
+                    val intent = Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse("https://play.google.com/store/apps/details?id=$appId")
+                    )
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    context.startActivity(intent)
+                }
+                onDismissRequested()
+            },
+            secondaryButtonAction = {
+                onDismissRequested()
+            },
+            onDismissRequest = {
+                onDismissRequested()
+            },
+        )
     }
 }
 

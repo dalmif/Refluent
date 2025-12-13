@@ -9,7 +9,7 @@ import io.kayt.core.model.SyncOperation
 import kotlinx.coroutines.flow.Flow
 
 interface LiveEditRepository {
-    suspend fun connect()
+    suspend fun connect() : Result<Unit>
 
     fun observeCardOperation(): Flow<CardOperation>
 
