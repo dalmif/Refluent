@@ -68,15 +68,9 @@ interface DeckDao {
     suspend fun getBackSideCardById(cardId: Long): BackSideCardEntity?
 
     @Query(
-//        "SELECT d.uid, d.name, d.reviewMode, d.color1, d.color2, COUNT(c.uid) AS totalCards, " +
-//                "SUM(CASE WHEN c.nextReview IS NOT NULL AND c.nextReview <= (CAST(strftime('%s','now') AS INTEGER) * 1000) + 1000 THEN 1 ELSE 0 END) AS dueCards, " +
-//                "SUM(CASE WHEN bc.nextReview IS NOT NULL AND bc.nextReview <= (CAST(strftime('%s','now') AS INTEGER) * 1000) + 1000 THEN 1 ELSE 0 END) AS backSideDueCards " +
-//                "FROM decks AS d LEFT JOIN cards AS c ON c.deckOwnerId = d.uid LEFT JOIN backside_cards AS bc ON bc.deckOwnerId = d.uid " +
-//                "GROUP BY d.uid, d.name ORDER BY d.createdDateTime ASC;"
-
         """
             WITH nowtable AS (
-                SELECT (CAST(strftime('%s','now') AS INTEGER) * 1000) AS nowMs
+                SELECT ((CAST(strftime('%s','now') AS INTEGER) * 1000) + 1000) AS nowMs
             )
             SELECT 
                 d.uid,
@@ -172,51 +166,9 @@ interface DeckDao {
     fun getTheNearestDueCard(): Flow<Long?>
 
     @Query(
-//        """
-//        SELECT d.uid, d.name, d.color1, d.color2, d.reviewMode,
-//           COUNT(c.uid) AS totalCards,
-//           SUM(
-//             CASE
-//               WHEN c.nextReview IS NOT NULL
-//                AND c.nextReview <= (CAST(strftime('%s','now') AS INTEGER) * 1000) + 1000
-//               THEN 1 ELSE 0
-//             END
-//           ) AS dueCards,
-//           (
-//             SELECT COUNT(*)
-//             FROM backside_cards AS bc2
-//             WHERE bc2.deckOwnerId = d.uid
-//               AND bc2.nextReview IS NOT NULL
-//               AND bc2.nextReview > (CAST(strftime('%s','now') AS INTEGER) * 1000) + 1000
-//           ) AS backSideDueCards,
-//           MIN((
-//             SELECT c2.nextReview
-//             FROM cards AS c2
-//             WHERE c2.deckOwnerId = d.uid
-//               AND c2.nextReview IS NOT NULL
-//               AND c2.nextReview > (CAST(strftime('%s','now') AS INTEGER) * 1000)
-//             ORDER BY c2.nextReview ASC
-//             LIMIT 1
-//           ),
-//           (
-//             SELECT bc2.nextReview
-//             FROM backside_cards AS bc2
-//             WHERE bc2.deckOwnerId = d.uid
-//               AND bc2.nextReview IS NOT NULL
-//               AND bc2.nextReview > (CAST(strftime('%s','now') AS INTEGER) * 1000)
-//             ORDER BY bc2.nextReview ASC
-//             LIMIT 1
-//           ))  AS nearestNextReview
-//        FROM decks AS d
-//        LEFT JOIN cards AS c ON c.deckOwnerId = d.uid
-//        WHERE d.uid = :deckId
-//        GROUP BY d.uid, d.name, d.color1, d.color2
-//        ORDER BY d.createdDateTime DESC
-//        LIMIT 1
-//"""
         """
             WITH nowtable AS (
-                SELECT (CAST(strftime('%s','now') AS INTEGER) * 1000) AS nowMs
+                SELECT ((CAST(strftime('%s','now') AS INTEGER) * 1000) + 1000) AS nowMs
             )
             SELECT 
                 d.uid,

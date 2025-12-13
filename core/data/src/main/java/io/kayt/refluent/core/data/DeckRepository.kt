@@ -140,8 +140,8 @@ class DeckRepositoryImpl @Inject constructor(
             deckDataAccess.insertCard(
                 CardEntity(
                     deckOwnerId = deckId,
-                    frontSide = frontSide,
-                    backSide = backSide,
+                    frontSide = frontSide.trim(),
+                    backSide = backSide.trim(),
                     comment = comment,
                     phonetic = phonetic,
                     isArchived = false,
@@ -317,8 +317,8 @@ class DeckRepositoryImpl @Inject constructor(
                     cardWithBack.back?.let { back ->
                         val card = cardWithBack.card
                         card.copy(
-                            frontSide = card.backSide,
-                            backSide = card.frontSide,
+                            frontSide = card.frontSide,
+                            backSide = card.backSide,
                             repetition = back.repetition,
                             interval = back.interval,
                             easeFactor = back.easeFactor,
@@ -328,8 +328,8 @@ class DeckRepositoryImpl @Inject constructor(
                     }
                 } + cards.filter { it.back == null }.map {
                     it.card.copy(
-                        frontSide = it.card.backSide,
-                        backSide = it.card.frontSide,
+                        frontSide = it.card.frontSide,
+                        backSide = it.card.backSide,
                         repetition = DEFAULT_REPETITION,
                         interval = DEFAULT_INTERVAL,
                         easeFactor = DEFAULT_EASE_FACTOR,

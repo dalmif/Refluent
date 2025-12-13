@@ -220,7 +220,8 @@ private fun DeckScreen(
                                         Modifier.sharedElement(
                                             rememberSharedContentState(key = "deck_due_cards_${state.deck.id}"),
                                             animatedVisibilityScope = LocalNavAnimatedVisibilityScope.current
-                                        )
+                                        ).height(80.dp),
+                                        contentAlignment = Alignment.BottomEnd
                                     ) {
                                         if (state.deck.totalCards == 0 || state.deck.dueCards > 0) {
                                             Text(
@@ -402,7 +403,11 @@ private fun DeckScreen(
                                             }
                                         }
                                     } else {
-                                        Column(modifier = Modifier.fillMaxSize()) {
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .nestedScroll(topmostAppBarState.nestedScrollConnection)
+                                        ) {
                                             SettingScreen(
                                                 onReviewModeOptionClick = {
                                                     onReviewModeChange(it)
@@ -526,7 +531,7 @@ private fun SettingScreen(
     Column(modifier = modifier.fillMaxSize()) {
         Row(
             modifier = Modifier
-                .padding(horizontal = 12.dp)
+                .padding(horizontal = 8.dp)
                 .padding(top = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -536,7 +541,13 @@ private fun SettingScreen(
                     contentDescription = null
                 )
             }
-            Text("Review Mode")
+            Text(
+                "Review Mode",
+                style = AppTheme.typography.body1.copy(
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            )
         }
         Column(Modifier.verticalScroll(rememberScrollState())) {
             val options = ReviewMode.entries
