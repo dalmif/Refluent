@@ -3,6 +3,7 @@ package io.kayt.refluent.core.data
 import io.kayt.core.domain.repository.LiveEditRepository
 import io.kayt.core.model.Card
 import io.kayt.core.model.CardOperation
+import io.kayt.core.model.Config
 import io.kayt.core.model.Deck
 import io.kayt.core.model.DeckOperation
 import io.kayt.core.model.LiveEditState
@@ -17,15 +18,21 @@ import javax.inject.Inject
 
 class LiveEditRepositoryImpl @Inject constructor(
     private val liveEditSocket: LiveEditSocket,
-    private val userStorage: UserStorage
+    private val userStorage: UserStorage,
+    private val config: Config
 ) : LiveEditRepository {
 
-    override suspend fun connect() {
-        liveEditSocket.connect()
+    override suspend fun connect(): Result<Unit> {
+        liveEditSocket.connect(config.versionCode)
         val key = userStorage.getLastLiveEditKey() ?: liveEditSocket.createKey(6)
-        liveEditSocket.registerWithTimeout(key).also {
-            userStorage.saveLiveEditKey(key)
+        try {
+            liveEditSocket.registerWithTimeout(key).also {
+                userStorage.saveLiveEditKey(key)
+            }
+        } catch (e: LiveEditSocket.AppUpdateRequiredException) {
+            return Result.failure(e)
         }
+        return Result.success(Unit)
     }
 
     override fun observeCardOperation(): Flow<CardOperation> {
