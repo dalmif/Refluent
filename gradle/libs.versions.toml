@@ -2,6 +2,8 @@
 
 # Android
 agp = "8.13.1"
+targetSdkVersion = "36"
+compileSdkVersion = "36"
 
 # Kotlin
 composeSwipeableCards = "1.1.4"
@@ -112,7 +114,7 @@ androidx-security = { module = "androidx.security:security-crypto", version.ref 
 androidx-startup = { module = "androidx.startup:startup-runtime", version.ref = "androidx-startup" }
 androidx-window = { module = "androidx.window:window", version.ref = "androidx-window" }
 androidx-window-core = { module = "androidx.window:window-core", version.ref = "androidx-window" }
-androidx-splash = {module = "androidx.core:core-splashscreen", version.ref = "androidx-splash"}
+androidx-splash = { module = "androidx.core:core-splashscreen", version.ref = "androidx-splash" }
 
 # Network
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
