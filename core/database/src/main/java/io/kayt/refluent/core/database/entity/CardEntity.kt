@@ -2,6 +2,7 @@ package io.kayt.refluent.core.database.entity
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Ignore
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
@@ -36,4 +37,10 @@ data class CardEntity(
     val lastReviewed: Long? = null,
 
     val createdDateTime: Long = System.currentTimeMillis()
-)
+) {
+    // Just a simple marker to make it easier to distinguish between real cards and virtual cards
+    // Virtual cards are cards that are made from a real card to demonstrate a back first card
+    // They don't have their own id and they don't get inserted as cards but backSideCards
+    @Ignore
+    var isVirtual: Boolean = false
+}

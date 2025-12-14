@@ -28,7 +28,7 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
             extensions.configure<LibraryExtension> {
                 configureKotlinAndroid(this)
                 configureCommonAndroidx(this)
-                defaultConfig.targetSdk = 35
+                defaultConfig.targetSdk = libs.versions.targetSdkVersion.get().toInt()
             }
             extensions.configure<LibraryAndroidComponentsExtension> {
                 configurePrintApksTask(this)

@@ -15,6 +15,7 @@ fun NavGraphBuilder.home(
     onDeckClick: (Long) -> Unit,
     onDeckEditClick: (Long) -> Unit,
     onStudyClick : (Long) -> Unit,
+    onLiveEditClick : () -> Unit
 ) {
     composable<HomeRoute> {
         CompositionLocalProvider(LocalNavAnimatedVisibilityScope provides this) {
@@ -22,7 +23,8 @@ fun NavGraphBuilder.home(
                 onAddDeckClick = onAddDeckClick,
                 onDeckClick = onDeckClick,
                 onDeckEditClick = onDeckEditClick,
-                onStudyClick = onStudyClick
+                onStudyClick = onStudyClick,
+                onLiveEditClick = onLiveEditClick
             )
         }
     }

@@ -129,7 +129,7 @@ private fun DeckEntryPreview() {
     AppTheme {
         NoOpTTSManagerScope {
             DeckEntry(
-                card = Card(0, "Hello", "Ciao", 12, 3, 0, 0.1f, 0, 0, 0, false, "phonetic", "", "")
+                card = Card(0, "Hello", "Ciao", 12, true, "","","")
             )
         }
     }
