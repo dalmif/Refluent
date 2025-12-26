@@ -56,6 +56,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.kayt.core.model.util.applyIf
 import io.kayt.refluent.core.ui.R
 import io.kayt.refluent.core.ui.component.DeleteAlertDialog
 import io.kayt.refluent.core.ui.component.button.DeleteButton
@@ -120,17 +121,24 @@ private fun AddDeckModal(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(38.dp))
-            .background(
-                brush = Brush.horizontalGradient(
-                    colors = listOf(
-                        Color(state.color),
-                        Color(COLOR_FIXED)
+            .applyIf(!AppTheme.isDark) {
+                background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(
+                            Color(state.color),
+                            Color(COLOR_FIXED)
+                        )
                     )
                 )
-            )
+            }
+            .applyIf(AppTheme.isDark) {
+                background(
+                    AppTheme.colors.cardBackground
+                )
+            }
             .scrollableHorizontalFraction(fraction)
     ) {
-        val placeholderBaseColor = Color.Black.copy(alpha = 0.4f)
+        val placeholderBaseColor = AppTheme.colors.textPrimary.copy(alpha = 0.4f)
         val placeholderAnimatable = remember { Animatable(placeholderBaseColor) }
         Box {
             Column {
@@ -143,7 +151,7 @@ private fun AddDeckModal(
                         if (isEditing) "Edit the deck"
                         else "Create new deck",
                         style = AppTheme.typography.body2,
-                        color = Color(0x66000000)
+                        color = AppTheme.colors.textPrimary.copy(0.4f)
                     )
                     Spacer(Modifier.height(16.dp))
                     BasicTextField(
@@ -153,7 +161,7 @@ private fun AddDeckModal(
                         keyboardOptions = KeyboardOptions(
                             capitalization = KeyboardCapitalization.Words
                         ),
-                        textStyle = AppTheme.typography.headline1,
+                        textStyle = AppTheme.typography.headline1.applyIf(AppTheme.isDark) {copy(color= Color(state.color))},
                         modifier = Modifier.fillMaxWidth(0.7f),
                         decorationBox = { innerTextField ->
                             Box(
@@ -180,14 +188,15 @@ private fun AddDeckModal(
                         Text(
                             "Scroll horizontally to change the color",
                             style = AppTheme.typography.body2,
-                            color = Color(0x66000000)
+                            color = AppTheme.colors.textPrimary.copy(0.4f)
                         )
-                        Image(
+                        Icon(
                             painter = painterResource(R.drawable.scroll_horizontally),
                             null,
                             modifier = Modifier
                                 .padding(top = 10.dp)
-                                .width(62.dp)
+                                .width(62.dp),
+                            tint = AppTheme.colors.textPrimary
                         )
 
                     }
@@ -196,7 +205,7 @@ private fun AddDeckModal(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.White, RoundedCornerShape(23.dp))
+                        .background(AppTheme.colors.background, RoundedCornerShape(23.dp))
                         .verticalScroll(scrollState),
                     verticalArrangement = Arrangement.Bottom
                 ) {
@@ -285,7 +294,7 @@ private fun AddDeckModal(
                 Icon(
                     painter = painterResource(R.drawable.icon_close_general),
                     null,
-                    tint = Color(0xFF645315)
+                    tint = AppTheme.colors.closeButtonColor
                 )
             }
         }

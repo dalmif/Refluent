@@ -1,6 +1,8 @@
 package io.kayt.refluent.core.ui.theme.colors
 
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.ui.graphics.Color
 
 internal val MaterialThemeLightColors = lightColorScheme(
     primary = Purple1,
@@ -19,6 +21,23 @@ internal val MaterialThemeLightColors = lightColorScheme(
     onError = Black1
 )
 
+internal val MaterialThemeDarkColors = darkColorScheme(
+    primary = Purple1,
+    secondary = Purple3,
+    onSecondary = Black1,
+    onPrimary = White,
+    onBackground = White,
+    onSurface = Black1,
+    background = Black1,
+    surface = Black1,
+    error = Red,
+    outlineVariant = Grey2,
+    outline = Grey3,
+    onSurfaceVariant = Grey4,
+    surfaceVariant = Grey1,
+    onError = Black1
+)
+
 internal val AppThemeLightColors = AppColors(
     textPrimary = Black1,
     textSecondary = Grey4,
@@ -27,7 +46,12 @@ internal val AppThemeLightColors = AppColors(
     textNegativeSecondary = Grey,
     textCTAPrimary = White,
     textCTASecondary = Purple1,
-    background = White,
+    cardBackground = White, // This is gradient
+    background = White1,
+    surface = White1,
+    searchBoxBackground = White1,
+    searchBoxContent = Color(0xFF4E4E4E),
+    searchBoxBorder = Color(0xFFD7D7D7),
     backgroundGrey = Grey2,
     backgroundGrey2 = Grey3,
     backgroundNegative = Purple4,
@@ -48,7 +72,55 @@ internal val AppThemeLightColors = AppColors(
     validation = Green,
     error = Red,
     onError = DarkRed,
-    backgroundLiveShow = LightOrange,
-    livePrimary = Red2,
-    ctaLiveShow = Orange
+    closeButtonColor = Color(0xFF645315),
+    divider = Color(0xFFEFEFEF),
+    ctaLiveShow = Orange,
+    yellowOnBackground = Color(0xFFF8F5E1),
+    agree = Color(0xFF1B8F1D),
+    disagree = Color(0xFFB22525),
+    rotateButton = Color(0xFF3A50AF)
+)
+
+internal val AppThemeDarkColors = AppColors(
+    textPrimary = White,
+    textSecondary = GreyInDark,
+    textHighlight = Orange,
+    textNegativePrimary = White,
+    textNegativeSecondary = Grey,
+    textCTAPrimary = White,
+    textCTASecondary = Purple1,
+    background = Color(0xFF161616),
+    surface = Color(0xFF2D2C2C),
+    cardBackground = Color(0xFF242323),
+    searchBoxBackground = Color(0xFF353535),
+    searchBoxContent = Color(0xFFBCBCBC),
+    searchBoxBorder = Color(0xFF484848),
+    backgroundGrey = Color(0xFF484848),
+    backgroundGrey2 = Grey3,
+    backgroundNegative = Purple4,
+    backgroundPurple = Purple3,
+    backgroundDark = White,
+    onBackgroundDark = Black1,
+    ctaPrimary = Purple1,
+    ctaSecondary = Purple3,
+    ctaIconPrimary = White,
+    ctaIconSecondary = Purple1,
+    ctaIconNegative = Purple2,
+    ctaIconNegative2 = Black1,
+    navIconPrimary = Black1,
+    navIconNegative = White,
+    illustrationPrimary = Black1,
+    illustrationNegative = White,
+    separator = Grey2,
+    validation = Green,
+    error = Color(0xFF4D1C1C),
+    onError = Color(0xFFE7C7B2),
+    closeButtonColor = Color(0xFFFFFFFF),
+    divider = Color(0xFF343434),
+    ctaLiveShow = Orange,
+    yellowOnBackground = Color(0xFF3E3D35),
+    agree = Color(0xFFA7E8A8),
+    disagree = Color(0xFFDE8989),
+    rotateButton = Color(0xFF8F9BD0)
+
 )

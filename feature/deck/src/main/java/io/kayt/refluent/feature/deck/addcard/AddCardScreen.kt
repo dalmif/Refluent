@@ -34,7 +34,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -124,7 +123,8 @@ private fun AddCardScreen(
     onAddCardButton: () -> Unit
 ) {
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = AppTheme.colors.background,
     ) { paddingValues ->
         Box {
             Column(
@@ -153,6 +153,7 @@ private fun AddCardScreen(
                 Text(
                     text = "Comment",
                     style = AppTheme.typography.textFieldTitle,
+                    color = AppTheme.colors.textPrimary,
                     modifier = Modifier.padding(start = 8.dp, bottom = 8.dp),
                 )
 
@@ -164,7 +165,7 @@ private fun AddCardScreen(
                         })
                         .border(
                             if (!active) 1.dp else 2.dp,
-                            color = if (!active) Color(0xFFBEBEBE) else Purple1,
+                            color = if (!active) AppTheme.colors.textPrimary.copy(0.1f) else Purple1,
                             shape = RoundedCornerShape(10.dp)
                         )
                 ) {
@@ -174,7 +175,7 @@ private fun AddCardScreen(
                             .padding(vertical = 4.dp),
                         state = state.commentRichText,
                     )
-                    HorizontalDivider(color = Color(0xFFF6F6F6))
+                    HorizontalDivider(color = AppTheme.colors.textPrimary.copy(0.1f))
                     OutlinedRichTextEditor(
                         state = state.commentRichText,
                         colors = RichTextEditorDefaults.outlinedRichTextEditorColors(
@@ -183,7 +184,10 @@ private fun AddCardScreen(
                             disabledBorderColor = Color.Transparent,
                             unfocusedBorderColor = Color.Transparent,
                         ),
-                        textStyle = AppTheme.typography.body2.copy(fontFamily = DMSansVazir),
+                        textStyle = AppTheme.typography.body2.copy(
+                            fontFamily = DMSansVazir,
+                            color = AppTheme.colors.textPrimary
+                        ),
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = 140.dp),
@@ -273,8 +277,8 @@ private fun AiButton(
             .border(
                 1.dp,
                 brush = Brush.horizontalGradient(
-                    0f to Color(0xFFCA40D6),
-                    1f to Color(0xFF4677E9)
+                    0f to Color(0xFFCA40D6).copy(if (AppTheme.isDark) 0.3f else 1f),
+                    1f to Color(0xFF4677E9).copy(if (AppTheme.isDark) 0.3f else 1f)
                 ),
                 shape = CircleShape
             )
@@ -290,7 +294,7 @@ private fun AiButton(
             ) {
                 CircularProgressIndicator(
                     modifier = Modifier.fillMaxSize(),
-                    color = Color(0xFFCA40D6),
+                    color = Color(0xFFCA40D6).copy(if (AppTheme.isDark) 0.5f else 1f),
                     strokeWidth = 2.dp
                 )
             }
@@ -298,7 +302,7 @@ private fun AiButton(
             Icon(
                 painter = painterResource(R.drawable.ic_ai_model),
                 contentDescription = null,
-                tint = Color(0xFFCA40D6),
+                tint = Color(0xFFCA40D6).copy(if (AppTheme.isDark) 0.5f else 1f),
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -327,6 +331,7 @@ private fun RowScope.SideTextColumn(
             text = title,
             style = AppTheme.typography.textFieldTitle,
             modifier = Modifier.padding(start = 8.dp),
+            color = AppTheme.colors.textPrimary
         )
         Spacer(modifier = Modifier.height(5.dp))
         var active by remember { mutableStateOf(false) }
@@ -335,7 +340,8 @@ private fun RowScope.SideTextColumn(
                 value = value,
                 textStyle = AppTheme.typography.body2.copy(
                     fontFamily = DMSansVazir,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = AppTheme.colors.textPrimary
                 ),
                 modifier = Modifier
                     .onFocusEvent({
@@ -344,7 +350,7 @@ private fun RowScope.SideTextColumn(
                     .aspectRatio(1.33f)
                     .border(
                         if (!active) 1.dp else 2.dp,
-                        color = if (!active) Color(0xFFBEBEBE) else Purple1,
+                        color = if (!active) AppTheme.colors.textPrimary.copy(0.1f) else Purple1,
                         shape = RoundedCornerShape(10.dp)
                     )
                     .padding(horizontal = 10.dp, vertical = 10.dp),

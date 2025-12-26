@@ -116,7 +116,7 @@ private fun FlashcardScreen(
     MeshGradient(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White),
+            .background(AppTheme.colors.background),
         mesh = MeshGradient(
             width = 3,
             height = 5,
@@ -144,7 +144,10 @@ private fun FlashcardScreen(
                                 backgroundColor
                             )
                         )
-                            .background(Color.Black.copy(alpha = 0.3f))
+                            .background(
+                                if (!AppTheme.isDark) Color.Black.copy(alpha = 0.3f)
+                                else Color.Black.copy(alpha = 0.7f)
+                            )
                     }
             ) {
                 when (state) {
@@ -234,9 +237,9 @@ private fun FlashcardScreen(
                                         ) {
                                             ActionButton(
                                                 icon = painterResource(R.drawable.ic_wrong),
-                                                backgroundColor = Color(0x99FFFFFF),
-                                                borderColor = Color(0xFFB22525),
-                                                iconTint = Color(0xFFB22525),
+                                                backgroundColor = AppTheme.colors.background.copy(if (AppTheme.isDark) 0.3f else 0.6f),
+                                                borderColor = AppTheme.colors.disagree,
+                                                iconTint = AppTheme.colors.disagree,
                                                 iconSize = 38.dp,
                                                 onClick = {
                                                     if (state.cards.size > swipeableState.currentCardIndex) {
@@ -248,12 +251,12 @@ private fun FlashcardScreen(
                                             Spacer(Modifier.width(30.dp))
                                             ActionButton(
                                                 icon = painterResource(R.drawable.ic_exchange),
-                                                backgroundColor = Color(0xFF3A50AF),
-                                                borderColor = Color(0xFF3A50AF),
-                                                iconTint = Color.White,
+                                                backgroundColor = AppTheme.colors.rotateButton,
+                                                borderColor = AppTheme.colors.rotateButton,
+                                                iconTint = AppTheme.colors.onBackgroundDark,
                                                 size = 97.dp,
                                                 iconSize = 37.dp,
-                                                shadow = true,
+                                                shadow = !AppTheme.isDark,
                                                 onClick = {
                                                     flipState.value =
                                                         if (flipState.value.first == swipeableState.currentCardIndex) {
@@ -266,9 +269,9 @@ private fun FlashcardScreen(
                                             Spacer(Modifier.width(30.dp))
                                             ActionButton(
                                                 icon = painterResource(R.drawable.ic_vector),
-                                                backgroundColor = Color(0x99FFFFFF),
-                                                borderColor = Color(0xFF1B8F1D),
-                                                iconTint = Color(0xFF1B8F1D),
+                                                backgroundColor = AppTheme.colors.background.copy(if (AppTheme.isDark) 0.3f else 0.6f),
+                                                borderColor = AppTheme.colors.agree,
+                                                iconTint = AppTheme.colors.agree,
                                                 iconSize = 33.dp,
                                                 onClick = {
                                                     if (state.cards.size > swipeableState.currentCardIndex) {
@@ -281,8 +284,11 @@ private fun FlashcardScreen(
                                         Spacer(Modifier.height(36.dp))
                                         SecondaryBigButton(
                                             onBackClick,
-                                            background = Color(0xFFDED7D5),
+                                            background =
+                                                if (AppTheme.isDark) AppTheme.colors.background.copy(0.2f)
+                                                else Color(0xFFE6E6E6),
                                             height = 63.dp,
+                                            showDropShadow = !AppTheme.isDark,
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .padding(bottom = 16.dp)
@@ -348,6 +354,7 @@ private fun FlashcardScreen(
                                             painter = painterResource(R.drawable.congrat_brainy),
                                             contentDescription = null,
                                             modifier = Modifier
+                                                .applyIf(AppTheme.isDark) { alpha(0f) }
                                                 .width(218.dp)
                                                 .onGloballyPositioned({ layoutCoordinates ->
                                                     val position =
@@ -475,7 +482,7 @@ private fun SwipeableCard(
                     indication = null,
                     interactionSource = null
                 )
-                .background(Color.White.copy(if (isOnTop) 1f else 0.3f))
+                .background(AppTheme.colors.surface.copy(if (isOnTop) 1f else 0.3f))
                 .padding(32.dp)
         ) {
             val isAngleLessThanUpright by remember { derivedStateOf { rotation.value >= -90f } }
@@ -497,7 +504,7 @@ private fun SwipeableCard(
                         Text(
                             text = card.front,
                             style = AppTheme.typography.cardText,
-                            color = Color.Black.copy(alpha = if (isVisible) 1f else 0f),
+                            color = AppTheme.colors.textPrimary.copy(alpha = if (isVisible) 1f else 0f),
                             textAlign = TextAlign.Center
                         )
 
@@ -513,11 +520,11 @@ private fun SwipeableCard(
                                 text = "/${card.phonetic}/".takeIf { card.phonetic.isNotBlank() }
                                     ?: "",
                                 style = AppTheme.typography.body1,
-                                color = Color(0xFFA4A4A4)
+                                color = AppTheme.colors.textPrimary.copy(0.6f)
                             )
 
                             Spacer(modifier = Modifier.width(8.dp))
-                            val ttfManager = LocalTtsManager.current
+                            val ttsManager = LocalTtsManager.current
                             Box(
                                 modifier = Modifier
                                     .size(40.dp)
@@ -525,7 +532,7 @@ private fun SwipeableCard(
                                         interactionSource = remember { MutableInteractionSource() },
                                         indication = ripple(radius = 20.dp)
                                     ) {
-                                        ttfManager.speak(card.front)
+                                        ttsManager.speak(card.front)
                                     },
                                 contentAlignment = Alignment.Center
                             ) {
@@ -533,9 +540,7 @@ private fun SwipeableCard(
                                     painter = painterResource(R.drawable.ic_light_sound_wave),
                                     contentDescription = "Play audio",
                                     modifier = Modifier.size(24.dp),
-                                    tint = if (ttfManager.isAvailable) Color(0xFFB2B2B2) else Color(
-                                        0xFFCCCCCC
-                                    )
+                                    tint = AppTheme.colors.textPrimary.copy(if (ttsManager.isAvailable) 0.6f else 0.3f)
                                 )
                             }
                         }
@@ -547,9 +552,11 @@ private fun SwipeableCard(
                 }
             } else {
                 Column(
-                    Modifier.graphicsLayer {
-                        rotationY = 180f
-                    }.alpha(if (isVisible) 1f else 0f),
+                    Modifier
+                        .graphicsLayer {
+                            rotationY = 180f
+                        }
+                        .alpha(if (isVisible) 1f else 0f),
                 ) {
                     Box(
                         modifier = Modifier

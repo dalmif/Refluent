@@ -31,10 +31,7 @@ class MainActivity : ComponentActivity() {
             ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
         }
         installSplashScreen()
-        enableEdgeToEdge(
-            navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, 0x4F000000),
-            statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, 0x4F000000)
-        )
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
             AppTheme {
