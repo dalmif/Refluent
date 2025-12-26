@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -48,8 +49,8 @@ fun SearchTextFiled(
                 .border(
                     width = 1.dp,
                     brush = Brush.linearGradient(
-                        0f to Color(0xFFD7D7D7),
-                        1f to Color.Transparent
+                        0f to AppTheme.colors.searchBoxBorder,
+                        if (!AppTheme.isDark) 1f to Color.Transparent else 1f to AppTheme.colors.searchBoxBorder
                     ),
                     shape = CircleShape
                 )
@@ -59,7 +60,7 @@ fun SearchTextFiled(
                     ambientColor = Color.Black.copy(alpha = 0.2f),
                     spotColor = Color.Black.copy(0.2f)
                 )
-                .background(Color.White)
+                .background(AppTheme.colors.searchBoxBackground)
                 .padding(end = 80.dp),
             onValueChange = onValueChange,
             value = value,
@@ -79,12 +80,13 @@ fun SearchTextFiled(
                 )
             },
             leadingIcon = {
-                Image(
+                Icon(
                     painter = painterResource(R.drawable.ic_search_magnifier),
                     contentDescription = null,
                     modifier = Modifier
                         .padding(start = 10.dp)
-                        .size(17.dp)
+                        .size(17.dp),
+                    tint = AppTheme.colors.searchBoxContent
                 )
             },
             colors = TextFieldDefaults.colors(
@@ -120,26 +122,28 @@ fun SearchTextFiled(
                 errorIndicatorColor = Color.Transparent,
             )
         )
-        val noResultLottieComposition by rememberLottieComposition(
-            LottieCompositionSpec.RawRes(R.raw.laydown_animation)
-        )
-        Box(
-            modifier = Modifier
-                .height(50.dp)
-                .width(65.dp)
-                .padding(end = 10.dp)
-                .offset(y = 6.dp)
-                .align(Alignment.CenterEnd)
-                .wrapContentSize(align = Alignment.CenterEnd, unbounded = true)
-        ) {
-            LottieAnimation(
-                modifier = Modifier
-                    .height(80.dp)
-                    .width(90.dp),
-                composition = noResultLottieComposition,
-                iterations = LottieConstants.IterateForever,
-                reverseOnRepeat = true
+        if (AppTheme.isDark.not()) {
+            val noResultLottieComposition by rememberLottieComposition(
+                LottieCompositionSpec.RawRes(R.raw.laydown_animation)
             )
+            Box(
+                modifier = Modifier
+                    .height(50.dp)
+                    .width(65.dp)
+                    .padding(end = 10.dp)
+                    .offset(y = 6.dp)
+                    .align(Alignment.CenterEnd)
+                    .wrapContentSize(align = Alignment.CenterEnd, unbounded = true)
+            ) {
+                LottieAnimation(
+                    modifier = Modifier
+                        .height(80.dp)
+                        .width(90.dp),
+                    composition = noResultLottieComposition,
+                    iterations = LottieConstants.IterateForever,
+                    reverseOnRepeat = true
+                )
+            }
         }
     }
 }
