@@ -13,7 +13,8 @@ class AppModule {
     @Provides
     fun provideConfigRepository(): Config {
         return Config(
-            versionCode = BuildConfig.VERSION_CODE
+            versionCode = BuildConfig.VERSION_CODE,
+            useLocalIp = BuildConfig.DEBUG
         )
     }
 }

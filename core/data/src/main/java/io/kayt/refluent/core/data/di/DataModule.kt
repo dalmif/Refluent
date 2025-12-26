@@ -8,6 +8,7 @@ import dagger.hilt.components.SingletonComponent
 import io.kayt.core.domain.repository.DeckRepository
 import io.kayt.core.domain.repository.LiveEditRepository
 import io.kayt.core.domain.repository.VocabularyRepository
+import io.kayt.core.model.Config
 import io.kayt.refluent.core.data.DeckRepositoryImpl
 import io.kayt.refluent.core.data.LiveEditRepositoryImpl
 import io.kayt.refluent.core.data.VocabularyRepositoryImpl
@@ -21,9 +22,12 @@ abstract class DataModule {
     companion object {
         @Provides
         @Singleton
-        fun provideSocket(): Socket {
+        fun provideSocket(config: Config): Socket {
             return IO.socket(
-                "https://live.refluent.app/",
+                if (config.useLocalIp)
+                    "http://192.168.0.118:5100/"
+                else
+                    "https://live.refluent.app/",
                 IO.Options().apply {
                     reconnection = true
                     reconnectionAttempts = Int.MAX_VALUE
