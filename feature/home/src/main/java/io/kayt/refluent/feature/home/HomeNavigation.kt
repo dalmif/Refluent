@@ -4,6 +4,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import io.kayt.core.model.DarkModeType
 import io.kayt.refluent.core.ui.component.LocalNavAnimatedVisibilityScope
 import kotlinx.serialization.Serializable
 
@@ -15,7 +16,9 @@ fun NavGraphBuilder.home(
     onDeckClick: (Long) -> Unit,
     onDeckEditClick: (Long) -> Unit,
     onStudyClick : (Long) -> Unit,
-    onLiveEditClick : () -> Unit
+    onLiveEditClick : () -> Unit,
+    onDarkModeClick : () -> Unit,
+    darkMode: DarkModeType
 ) {
     composable<HomeRoute> {
         CompositionLocalProvider(LocalNavAnimatedVisibilityScope provides this) {
@@ -24,7 +27,9 @@ fun NavGraphBuilder.home(
                 onDeckClick = onDeckClick,
                 onDeckEditClick = onDeckEditClick,
                 onStudyClick = onStudyClick,
-                onLiveEditClick = onLiveEditClick
+                onLiveEditClick = onLiveEditClick,
+                onDarkModeClick = onDarkModeClick,
+                darkMode = darkMode
             )
         }
     }

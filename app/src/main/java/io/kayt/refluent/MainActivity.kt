@@ -1,14 +1,13 @@
 package io.kayt.refluent
 
 import android.content.pm.ActivityInfo
-import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.WindowSizeClass.Companion.HEIGHT_DP_MEDIUM_LOWER_BOUND
@@ -34,9 +33,13 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
-            AppTheme {
+            val darkMode = viewModel.darkMode.collectAsState().value
+            AppTheme(darkMode) {
                 CompositionLocalProvider(provideTTSManager()) {
-                    MainUi()
+                    MainUi(
+                        darkMode = viewModel.darkMode.collectAsState().value,
+                        onDarkModeClick = { viewModel.toggleDarkMode() }
+                    )
                 }
             }
         }

@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import io.kayt.core.model.DarkModeType
 import io.kayt.refluent.core.ui.component.LocalSharedTransitionScope
 import io.kayt.refluent.feature.deck.addcard.addCard
 import io.kayt.refluent.feature.deck.addcard.navigateToAddCard
@@ -25,7 +26,10 @@ import io.kayt.refluent.feature.home.navigateToHome
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun MainUi() {
+fun MainUi(
+    darkMode: DarkModeType,
+    onDarkModeClick : () -> Unit
+) {
     val navController = rememberNavController()
     SharedTransitionLayout {
         CompositionLocalProvider(
@@ -36,6 +40,7 @@ fun MainUi() {
                 startDestination = HomeRoute
             ) {
                 home(
+                    darkMode = darkMode,
                     onAddDeckClick = {
                         navController.navigateToAddDeck(it)
                     },
@@ -50,7 +55,8 @@ fun MainUi() {
                     },
                     onLiveEditClick = {
                         navController.navigateToLiveEdit()
-                    }
+                    },
+                    onDarkModeClick = onDarkModeClick
                 )
                 deck(
                     onAddCardClick = {

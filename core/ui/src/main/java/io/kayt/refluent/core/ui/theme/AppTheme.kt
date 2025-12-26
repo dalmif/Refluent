@@ -1,12 +1,17 @@
 package io.kayt.refluent.core.ui.theme
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.LocalTonalElevationEnabled
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
+import io.kayt.core.model.DarkModeType
 import io.kayt.refluent.core.ui.theme.colors.AppColors
 import io.kayt.refluent.core.ui.theme.colors.AppThemeDarkColors
 import io.kayt.refluent.core.ui.theme.colors.AppThemeLightColors
@@ -35,9 +40,23 @@ object AppTheme {
 @SuppressLint("ComposeModifierMissing")
 @Composable
 fun AppTheme(
-    isDark: Boolean = isSystemInDarkTheme(),
+    darkModeType: DarkModeType = DarkModeType.Light,
     content: @Composable () -> Unit
 ) {
+    val isDark = when (darkModeType) {
+        DarkModeType.Dark -> true
+        DarkModeType.Light -> false
+        DarkModeType.System -> isSystemInDarkTheme()
+    }
+
+    val view = LocalView.current
+    val activity = view.context as Activity
+
+    SideEffect {
+        val window = activity.window
+        WindowCompat.getInsetsController(window, view)
+            .isAppearanceLightStatusBars = !isDark
+    }
 
     CompositionLocalProvider(
         LocalAppColors provides if (!isDark) AppThemeLightColors else AppThemeDarkColors,
