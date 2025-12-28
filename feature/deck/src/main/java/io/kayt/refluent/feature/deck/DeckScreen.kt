@@ -648,6 +648,7 @@ private fun ReviewModeOption(
                 description,
                 style = AppTheme.typography.body1.copy(
                     fontSize = 13.sp,
+                    lineHeight = 19.sp,
                     fontWeight = FontWeight.Normal
                 ),
                 color = AppTheme.colors.textPrimary.copy(0.5f)

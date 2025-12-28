@@ -57,7 +57,7 @@ fun DeckEntry(
                     if (card.phonetic.isNotBlank()) {
                         withStyle(
                             SpanStyle(
-                                color = AppTheme.colors.textPrimary.copy(0.6f),
+                                color = AppTheme.colors.textPrimary.copy(0.34f),
                                 fontWeight = FontWeight.Normal
                             )
                         ) {
@@ -94,7 +94,7 @@ fun DeckEntry(
                 text = card.back,
                 fontSize = 17.sp,
                 fontFamily = DMSansVazir,
-                color = AppTheme.colors.textPrimary.copy(0.7f),
+                color = AppTheme.colors.textPrimary.copy(0.65f),
                 modifier = Modifier.fillMaxWidth(),
             )
         }
@@ -116,7 +116,7 @@ fun DeckEntry(
                 painter = painterResource(R.drawable.ic_light_sound_wave),
                 contentDescription = "Play audio",
                 modifier = Modifier.size(24.dp),
-                tint = AppTheme.colors.textPrimary.copy(if (ttsManager.isAvailable) 0.6f else 0.3f)
+                tint = AppTheme.colors.textPrimary.copy(if (ttsManager.isAvailable) 0.4f else 0.3f)
             )
         }
     }
