@@ -1,14 +1,23 @@
 package io.kayt.refluent.core.ui.theme
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.LocalTonalElevationEnabled
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
+import io.kayt.core.model.DarkModeType
 import io.kayt.refluent.core.ui.theme.colors.AppColors
+import io.kayt.refluent.core.ui.theme.colors.AppThemeDarkColors
 import io.kayt.refluent.core.ui.theme.colors.AppThemeLightColors
 import io.kayt.refluent.core.ui.theme.colors.LocalAppColors
+import io.kayt.refluent.core.ui.theme.colors.LocalDarkUi
+import io.kayt.refluent.core.ui.theme.colors.MaterialThemeDarkColors
 import io.kayt.refluent.core.ui.theme.colors.MaterialThemeLightColors
 import io.kayt.refluent.core.ui.theme.typography.AppTypography
 import io.kayt.refluent.core.ui.theme.typography.LocalAppTypography
@@ -22,23 +31,41 @@ object AppTheme {
     val typography: AppTypography
         @Composable
         get() = LocalAppTypography.current
+
+    val isDark: Boolean
+        @Composable
+        get() = LocalDarkUi.current
 }
 
 @SuppressLint("ComposeModifierMissing")
 @Composable
 fun AppTheme(
-    content: @Composable () -> Unit,
+    darkModeType: DarkModeType = DarkModeType.Light,
+    content: @Composable () -> Unit
 ) {
-    val materialColors = MaterialThemeLightColors
-    val appColors = AppThemeLightColors
+    val isDark = when (darkModeType) {
+        DarkModeType.Dark -> true
+        DarkModeType.Light -> false
+        DarkModeType.System -> isSystemInDarkTheme()
+    }
+
+    val view = LocalView.current
+    val activity = view.context as Activity
+
+    SideEffect {
+        val window = activity.window
+        WindowCompat.getInsetsController(window, view)
+            .isAppearanceLightStatusBars = !isDark
+    }
 
     CompositionLocalProvider(
-        LocalAppColors provides appColors,
+        LocalAppColors provides if (!isDark) AppThemeLightColors else AppThemeDarkColors,
         LocalAppTypography provides appTypography,
-        LocalTonalElevationEnabled provides false
+        LocalTonalElevationEnabled provides false,
+        LocalDarkUi provides isDark
     ) {
         MaterialTheme(
-            colorScheme = materialColors,
+            colorScheme = if (!isDark) MaterialThemeLightColors else MaterialThemeDarkColors,
             content = {
                 Surface(content = content)
             }

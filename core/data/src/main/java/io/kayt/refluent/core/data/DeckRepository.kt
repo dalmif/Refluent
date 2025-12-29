@@ -44,7 +44,7 @@ class DeckRepositoryImpl @Inject constructor(
 
         // I just changed the ease factor to see the cards more repeatedly, it's a bit aggressive
         // the default one is 2.5f
-        private const val MAX_EASE = 1.7f
+        private const val MAX_EASE = 2.1f
         private const val LAPSE_PENALTY = 0.25f // stronger penalty on fails
         private const val INTERVAL_MODIFIER = 0.85f // 15% sooner globally
         private const val EASY_BONUS = 1.10f // small push for perfect recall

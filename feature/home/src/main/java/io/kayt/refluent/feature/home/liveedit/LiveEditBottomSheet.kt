@@ -179,16 +179,19 @@ private fun LiveEditContent(
                 .align(Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = painterResource(R.drawable.brainy_laptop),
-                contentDescription = null
-            )
+            if (AppTheme.isDark.not()) {
+                Image(
+                    painter = painterResource(R.drawable.brainy_laptop),
+                    contentDescription = null
+                )
+            }
             AnimatedContent(state, contentKey = { it is LiveEditUiState.Connected }) {
                 val stars = "******"
                 val detail = if (it is LiveEditUiState.Connected) it.connectionCode else stars
                 Text(
                     detail,
                     style = AppTheme.typography.large,
+                    color = AppTheme.colors.textPrimary,
                     modifier = Modifier
                         .padding(horizontal = 12.dp)
                         .applyIf(detail == stars) { offset(y = 7.dp) }

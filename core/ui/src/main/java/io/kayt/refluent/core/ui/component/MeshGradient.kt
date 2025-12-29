@@ -88,7 +88,7 @@ data class MeshGradientContext(
     val points: () -> List<GradientPoint>
 )
 
-private fun Modifier.background(mesh: MeshGradientContext): Modifier {
+fun Modifier.background(mesh: MeshGradientContext): Modifier {
     return this.drawBehind {
         val widthSpot = size.width / mesh.width
         val heightSpot = size.height / mesh.height

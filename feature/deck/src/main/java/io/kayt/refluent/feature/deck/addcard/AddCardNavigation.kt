@@ -15,16 +15,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -46,15 +44,17 @@ fun NavGraphBuilder.addCard(navController: NavController) {
             confirmValueChange = { it != SheetValue.Hidden }
         )
         val coroutineScope = rememberCoroutineScope()
-        val nestedScrollConnection = remember(state) {
-            object : NestedScrollConnection {}
-        }
         ModalBottomSheet(
             containerColor = AppTheme.colors.background,
             modifier = Modifier
                 .statusBarsPadding()
                 .padding(top = 20.dp),
             sheetState = state,
+            sheetGesturesEnabled = true,
+            properties = ModalBottomSheetProperties(
+                shouldDismissOnBackPress = true,
+                shouldDismissOnClickOutside = false
+            ),
             dragHandle = {
                 Box(
                     modifier = Modifier
@@ -67,7 +67,7 @@ fun NavGraphBuilder.addCard(navController: NavController) {
                             .fillMaxHeight()
                             .aspectRatio(1.2f)
                             .clip(RoundedCornerShape(bottomStart = 11.dp))
-                            .background(Color(0xFFF3F3F3))
+                            .background(if (AppTheme.isDark) Color(0xFF2A2A2A) else Color(0xFFF3F3F3))
                             .clickable(
                                 onClick = {
                                     coroutineScope.launch {
@@ -82,7 +82,7 @@ fun NavGraphBuilder.addCard(navController: NavController) {
                         Icon(
                             painter = painterResource(R.drawable.icon_close_general),
                             null,
-                            tint = Color(0xFF645315)
+                            tint = if (AppTheme.isDark) Color(0xFFA5A5A5) else Color(0xFF645315)
                         )
                     }
                     Box(
@@ -92,7 +92,10 @@ fun NavGraphBuilder.addCard(navController: NavController) {
                             .clip(CircleShape)
                             .width(50.dp)
                             .height(6.dp)
-                            .background(Color(0xFFDEDEDE))
+                            .background(
+                                if (AppTheme.isDark) Color(0xFF404040)
+                                else Color(0xFFDEDEDE)
+                            )
                     )
                 }
             },
@@ -100,7 +103,7 @@ fun NavGraphBuilder.addCard(navController: NavController) {
                 navController.popBackStack()
             }
         ) {
-            Box(modifier = Modifier.nestedScroll(nestedScrollConnection)) {
+            Box(modifier = Modifier) {
                 AddCardScreen(
                     onBackClick = {
                         coroutineScope.launch {

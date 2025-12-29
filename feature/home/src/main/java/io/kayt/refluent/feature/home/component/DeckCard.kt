@@ -47,6 +47,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import io.kayt.core.model.Deck
+import io.kayt.core.model.util.applyIf
 import io.kayt.refluent.core.ui.R
 import io.kayt.refluent.core.ui.component.LocalNavAnimatedVisibilityScope
 import io.kayt.refluent.core.ui.component.LocalSharedTransitionScope
@@ -102,12 +103,19 @@ fun DeckCard(
                 )
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(20.dp))
-                .background(
-                    Brush.horizontalGradient(
-                        colorPoint to Color(deck.colors.first),
-                        1f to Color(deck.colors.second)
+                .applyIf(!AppTheme.isDark) {
+                    background(
+                        Brush.horizontalGradient(
+                            colorPoint to Color(deck.colors.first),
+                            1f to Color(deck.colors.second)
+                        )
                     )
-                )
+                }
+                .applyIf(AppTheme.isDark) {
+                    background(
+                        AppTheme.colors.cardBackground
+                    )
+                }
                 .combinedClickable(
                     interactionSource = interactionSource,
                     indication = ripple(),
@@ -118,13 +126,14 @@ fun DeckCard(
                 .padding(top = 38.dp, bottom = 22.dp)
         ) {
             var timePointingIcon by remember { mutableStateOf(false) }
-
+            val contentColor = if (AppTheme.isDark) Color(deck.colors.first) else AppTheme.colors.textPrimary
             Row(verticalAlignment = Alignment.CenterVertically) {
 
                 Box(Modifier.weight(1f)) {
                     Text(
                         deck.name.uppercase(),
                         style = AppTheme.typography.headline1,
+                        color = contentColor,
                         maxLines = 4,
                         modifier = Modifier.sharedElement(
                             rememberSharedContentState(key = "deck_title_$deckId"),
@@ -145,7 +154,8 @@ fun DeckCard(
                         if (deck.totalCards == 0 || deck.dueCards > 0) {
                             Text(
                                 text = deck.dueCards.toString(),
-                                style = AppTheme.typography.subhead
+                                style = AppTheme.typography.subhead,
+                                color = contentColor,
                             )
                         } else {
                             AnimatedContent(
@@ -154,11 +164,12 @@ fun DeckCard(
                                     slideInHorizontally { it } + fadeIn() togetherWith
                                             slideOutHorizontally { it } + fadeOut()
                                 }) {
-                                Image(
+                                Icon(
                                     if (!it) painterResource(R.drawable.brainstorming)
                                     else painterResource(R.drawable.no_card_yet),
                                     null,
-                                    modifier = Modifier.size(80.dp)
+                                    modifier = Modifier.size(80.dp),
+                                    tint = AppTheme.colors.textPrimary
                                 )
                             }
                         }
@@ -168,6 +179,7 @@ fun DeckCard(
                             if (deck.totalCards == 0 || deck.dueCards > 0) "due for reviews"
                             else "All caught up!",
                         style = AppTheme.typography.body1,
+                        color = contentColor,
                         modifier = Modifier.sharedElement(
                             rememberSharedContentState(key = "deck_due_text_$deckId"),
                             animatedVisibilityScope = LocalNavAnimatedVisibilityScope.current
@@ -184,6 +196,7 @@ fun DeckCard(
                 Text(
                     text = "${deck.totalCards} cards",
                     style = AppTheme.typography.body2,
+                    color = contentColor,
                     modifier = Modifier.sharedElement(
                         rememberSharedContentState(key = "deck_total_cards_$deckId"),
                         animatedVisibilityScope = LocalNavAnimatedVisibilityScope.current
@@ -210,19 +223,25 @@ fun DeckCard(
                                 }
                             }
                         })
-                        .background(Color(0x45F9C959))
+                        .background(
+                            if (AppTheme.isDark)
+                            contentColor.copy(alpha = 0.34f)
+                            else Color(0x45F9C959)
+                        )
                         .padding(vertical = 7.dp, horizontal = 14.dp)
                 ) {
                     Text(
                         text = if (deck.dueCards == 0 && deck.totalCards == 0)
                             "Go to Deck"
                         else "Let's review",
-                        style = AppTheme.typography.body1
+                        style = AppTheme.typography.body1,
+                        color = AppTheme.colors.textPrimary,
                     )
                     Spacer(Modifier.width(3.dp))
                     Icon(
                         painterResource(R.drawable.icon_arrow_right),
-                        contentDescription = null
+                        contentDescription = null,
+                        tint = AppTheme.colors.textPrimary
                     )
                 }
             }

@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.kayt.core.model.DarkModeType
 import io.kayt.core.model.LiveEditState
 import io.kayt.refluent.core.ui.R
 import io.kayt.refluent.core.ui.component.DeckEntry
@@ -73,6 +74,8 @@ internal fun HomeScreen(
     onDeckEditClick: (Long) -> Unit,
     onStudyClick: (Long) -> Unit,
     onLiveEditClick: () -> Unit,
+    onDarkModeClick: () -> Unit,
+    darkMode: DarkModeType,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -97,7 +100,9 @@ internal fun HomeScreen(
         onQueryChange = viewModel::onQueryChange,
         searchResult = searchResult,
         onStudyClick = onStudyClick,
-        onLiveEditClick = onLiveEditClick
+        onLiveEditClick = onLiveEditClick,
+        onDarkModeClick = onDarkModeClick,
+        darkMode = darkMode
     )
 }
 
@@ -112,18 +117,20 @@ private fun HomeScreen(
     onDeckEditClick: (Long) -> Unit,
     onDeckClick: (Long) -> Unit,
     onQueryChange: (String) -> Unit,
-    onLiveEditClick: () -> Unit
+    onLiveEditClick: () -> Unit,
+    onDarkModeClick: () -> Unit,
+    darkMode: DarkModeType
 ) {
     with(LocalSharedTransitionScope.current) {
         MeshGradient(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFFEFEFE)),
+                .background(AppTheme.colors.background),
             mesh = MeshGradient(
                 width = 3,
                 height = 5,
                 points = {
-                    point(0f, 0f, Color(0x4AFFE292))
+                    point(0.8f, 0f, Color(0x4AFFE292))
                 }
             )
         ) {
@@ -134,24 +141,49 @@ private fun HomeScreen(
                         Modifier
                             .statusBarsPadding()
                             .fillMaxWidth()
+                            .padding(start = 30.dp, end = 15.dp)
                             .height(60.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             "Refluent",
                             style = AppTheme.typography.greeting1,
-                            modifier = Modifier.padding(horizontal = 30.dp)
+                            color = AppTheme.colors.textPrimary,
                         )
                         Spacer(modifier = Modifier.weight(1f))
                         IconButton(
+                            onDarkModeClick,
+                        ) {
+                            when (darkMode) {
+                                DarkModeType.Dark -> Icon(
+                                    painter = painterResource(R.drawable.ic_light_mode),
+                                    contentDescription = "Light/Dark mode",
+                                    modifier = Modifier.size(35.dp),
+                                )
+
+                                DarkModeType.Light -> Icon(
+                                    painter = painterResource(R.drawable.ic_dark_mode),
+                                    contentDescription = "Light/Dark mode",
+                                    modifier = Modifier.size(25.dp),
+                                )
+
+                                DarkModeType.System -> Icon(
+                                    painter = painterResource(R.drawable.ic_system_mode),
+                                    contentDescription = "Light/Dark mode",
+                                    modifier = Modifier.size(25.dp),
+                                )
+                            }
+
+                        }
+                        IconButton(
                             onLiveEditClick,
-                            modifier = Modifier.padding(horizontal = 15.dp)
                         ) {
                             Box {
                                 Icon(
                                     painter = painterResource(R.drawable.share_desktop),
                                     modifier = Modifier.size(25.dp),
-                                    contentDescription = "Open in Browser"
+                                    contentDescription = "Open in Browser",
+                                    tint = AppTheme.colors.textPrimary
                                 )
                                 // if connection is established and online
                                 val liveEditState = state.liveEditState
@@ -231,7 +263,9 @@ private fun HomeScreen(
                                                                 style = AppTheme.typography.body1.copy(
                                                                     fontWeight = FontWeight.Medium
                                                                 ),
-                                                                color = Color(0xFF222222)
+                                                                color = AppTheme.colors.textPrimary.copy(
+                                                                    0.7f
+                                                                )
                                                             )
                                                         }
                                                     }
@@ -250,26 +284,34 @@ private fun HomeScreen(
                                                     horizontalAlignment = Alignment.CenterHorizontally
                                                 ) {
                                                     Spacer(Modifier.weight(1f))
-                                                    Box(
-                                                        modifier = Modifier.offset(
-                                                            x = 30.dp,
-                                                            y = 0.dp
-                                                        )
-                                                    ) {
-                                                        Spacer(
-                                                            Modifier
-                                                                .offset(x = -(193 / 2).dp, y = 0.dp)
-                                                                .size(193.dp)
-                                                                .background(
-                                                                    Color(0xFFFFF9D4),
-                                                                    CircleShape
+                                                    if (!AppTheme.isDark) {
+                                                        Box(
+                                                            modifier = Modifier.offset(
+                                                                x = 30.dp,
+                                                                y = 0.dp
+                                                            )
+                                                        ) {
+                                                            Spacer(
+                                                                Modifier
+                                                                    .offset(
+                                                                        x = -(193 / 2).dp,
+                                                                        y = 0.dp
+                                                                    )
+                                                                    .size(193.dp)
+                                                                    .background(
+                                                                        Color(0xFFFFF9D4),
+                                                                        CircleShape
+                                                                    )
+                                                            )
+                                                            Image(
+                                                                painter = painterResource(R.drawable.first_ever_brainy),
+                                                                contentDescription = null,
+                                                                modifier = Modifier.size(
+                                                                    137.dp,
+                                                                    185.dp
                                                                 )
-                                                        )
-                                                        Image(
-                                                            painter = painterResource(R.drawable.first_ever_brainy),
-                                                            contentDescription = null,
-                                                            modifier = Modifier.size(137.dp, 185.dp)
-                                                        )
+                                                            )
+                                                        }
                                                     }
                                                     Box(
                                                         modifier = Modifier.weight(1.4f),
@@ -278,6 +320,7 @@ private fun HomeScreen(
                                                         Text(
                                                             "No Decks Found",
                                                             fontFamily = LifeSaver,
+                                                            color = AppTheme.colors.textPrimary,
                                                             fontSize = 32.sp,
                                                             fontWeight = FontWeight.Bold,
                                                             lineHeight = 55.sp,
@@ -373,6 +416,7 @@ private fun HomeScreen(
                                                                 style = AppTheme.typography.body2.copy(
                                                                     fontWeight = FontWeight.Bold
                                                                 ),
+                                                                color = Color.Black,
                                                                 modifier = Modifier.padding(end = 30.dp)
                                                             )
                                                         }
@@ -380,7 +424,7 @@ private fun HomeScreen(
                                                 }
                                                 HorizontalDivider(
                                                     modifier = Modifier.padding(horizontal = 10.dp),
-                                                    color = Color(0xFFEFEFEF)
+                                                    color = AppTheme.colors.divider
                                                 )
                                             }
                                         }

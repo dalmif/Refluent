@@ -7,6 +7,9 @@ import androidx.compose.ui.graphics.Color
 
 @Immutable
 data class AppColors(
+    val agree : Color,
+    val disagree : Color,
+    val rotateButton : Color,
     val textPrimary: Color,
     val textSecondary: Color,
     val textHighlight: Color,
@@ -15,6 +18,12 @@ data class AppColors(
     val textCTAPrimary: Color,
     val textCTASecondary: Color,
     val background: Color,
+    val yellowOnBackground: Color,
+    val surface: Color,
+    val cardBackground: Color,
+    val searchBoxBackground: Color,
+    val searchBoxContent: Color,
+    val searchBoxBorder: Color,
     val backgroundGrey: Color,
     val backgroundGrey2: Color,
     val backgroundNegative: Color,
@@ -36,11 +45,17 @@ data class AppColors(
     val validation: Color,
     val error: Color,
     val onError: Color,
-    val backgroundLiveShow: Color,
-    val livePrimary: Color
+    val closeButtonColor: Color,
+    val divider: Color
 )
 
 @SuppressLint("ComposeCompositionLocalUsage")
 internal val LocalAppColors = staticCompositionLocalOf {
     AppThemeLightColors
+}
+
+
+@SuppressLint("ComposeCompositionLocalUsage")
+internal val LocalDarkUi = staticCompositionLocalOf {
+    false
 }

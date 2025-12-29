@@ -18,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
@@ -58,7 +57,7 @@ fun DeckEntry(
                     if (card.phonetic.isNotBlank()) {
                         withStyle(
                             SpanStyle(
-                                color = AppTheme.colors.textNegativeSecondary,
+                                color = AppTheme.colors.textPrimary.copy(0.34f),
                                 fontWeight = FontWeight.Normal
                             )
                         ) {
@@ -89,14 +88,14 @@ fun DeckEntry(
                     fontWeight = FontWeight.Medium,
                     fontSize = 18.sp
                 ),
-                color = Color.Black
+                color = AppTheme.colors.textPrimary
             )
             Text(
                 text = card.back,
                 fontSize = 17.sp,
                 fontFamily = DMSansVazir,
-                color = Color(0xFF515151),
-                modifier = Modifier.fillMaxWidth()
+                color = AppTheme.colors.textPrimary.copy(0.65f),
+                modifier = Modifier.fillMaxWidth(),
             )
         }
         val ttsManager = LocalTtsManager.current
@@ -117,7 +116,7 @@ fun DeckEntry(
                 painter = painterResource(R.drawable.ic_light_sound_wave),
                 contentDescription = "Play audio",
                 modifier = Modifier.size(24.dp),
-                tint = if (ttsManager.isAvailable) Color(0xFFB2B2B2) else Color(0xFFCCCCCC)
+                tint = AppTheme.colors.textPrimary.copy(if (ttsManager.isAvailable) 0.4f else 0.3f)
             )
         }
     }
@@ -129,7 +128,7 @@ private fun DeckEntryPreview() {
     AppTheme {
         NoOpTTSManagerScope {
             DeckEntry(
-                card = Card(0, "Hello", "Ciao", 12, true, "","","")
+                card = Card(0, "Hello", "Ciao", 12, true, "", "", "")
             )
         }
     }

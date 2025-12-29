@@ -56,6 +56,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.draw.scale
@@ -82,6 +85,8 @@ import io.kayt.refluent.core.ui.component.DeckEntry
 import io.kayt.refluent.core.ui.component.HeadlessTopmostAppBar
 import io.kayt.refluent.core.ui.component.LocalNavAnimatedVisibilityScope
 import io.kayt.refluent.core.ui.component.LocalSharedTransitionScope
+import io.kayt.refluent.core.ui.component.MeshGradient
+import io.kayt.refluent.core.ui.component.background
 import io.kayt.refluent.core.ui.component.button.PrimaryButton
 import io.kayt.refluent.core.ui.component.button.SecondaryButton
 import io.kayt.refluent.core.ui.component.rememberTopmostAppBarState
@@ -122,7 +127,9 @@ private fun DeckScreen(
         if (state is DeckUiState.Success) {
             val lazyColumnState = rememberLazyListState()
             val topmostAppBarState = rememberTopmostAppBarState(canScroll = { true })
-            Scaffold { innerPadding ->
+            Scaffold(
+                containerColor = AppTheme.colors.background
+            ) { innerPadding ->
                 Box(
                     Modifier
                         .padding(bottom = innerPadding.calculateBottomPadding())
@@ -136,14 +143,33 @@ private fun DeckScreen(
                             )
                             .fillMaxWidth()
                             .fillMaxHeight(0.45f)
-                            .background(
-                                Brush.horizontalGradient(
-                                    listOf(
-                                        Color(state.deck.colors.first),
-                                        Color(state.deck.colors.second)
+                            .applyIf(!AppTheme.isDark) {
+                                background(
+                                    Brush.horizontalGradient(
+                                        listOf(
+                                            Color(state.deck.colors.first),
+                                            Color(state.deck.colors.second)
+                                        )
                                     )
                                 )
-                            )
+                            }.applyIf(AppTheme.isDark) {
+                                background(AppTheme.colors.cardBackground)
+                                    .scale(1.1f)
+                                    .blur(30.dp, edgeTreatment = BlurredEdgeTreatment.Unbounded)
+                                    .background(
+                                        MeshGradient(
+                                            width = 3,
+                                            height = 2,
+                                            points = {
+                                                point(0.8f, 0f, Color(0x4AFFE292))
+                                                point(
+                                                    0.2f,
+                                                    0f,
+                                                    Color(state.deck.colors.first).copy(0.4f)
+                                                )
+                                            }
+                                        ))
+                            }
                     )
                     Column {
                         Column(
@@ -161,6 +187,11 @@ private fun DeckScreen(
                                             state.deck.name.uppercase(),
                                             style = AppTheme.typography.headline1,
                                             maxLines = 4,
+                                            color = if (AppTheme.isDark) {
+                                                Color(state.deck.colors.first)
+                                            } else {
+                                                AppTheme.colors.textPrimary
+                                            },
                                             modifier = Modifier.sharedElement(
                                                 rememberSharedContentState(
                                                     key = "deck_title_${state.deck.id}"
@@ -171,6 +202,7 @@ private fun DeckScreen(
                                         Text(
                                             text = "${state.deck.totalCards} cards",
                                             style = AppTheme.typography.body2,
+                                            color = AppTheme.colors.textPrimary,
                                             modifier = Modifier.sharedElement(
                                                 rememberSharedContentState(
                                                     key = "deck_total_cards_${state.deck.id}"
@@ -217,10 +249,11 @@ private fun DeckScreen(
                                         }
                                     }
                                     Box(
-                                        Modifier.sharedElement(
-                                            rememberSharedContentState(key = "deck_due_cards_${state.deck.id}"),
-                                            animatedVisibilityScope = LocalNavAnimatedVisibilityScope.current
-                                        ).height(80.dp),
+                                        Modifier
+                                            .sharedElement(
+                                                rememberSharedContentState(key = "deck_due_cards_${state.deck.id}"),
+                                                animatedVisibilityScope = LocalNavAnimatedVisibilityScope.current
+                                            ),
                                         contentAlignment = Alignment.BottomEnd
                                     ) {
                                         if (state.deck.totalCards == 0 || state.deck.dueCards > 0) {
@@ -241,14 +274,15 @@ private fun DeckScreen(
                                                     slideInHorizontally { it } togetherWith slideOutHorizontally { it }
                                                 }
                                             ) {
-                                                Image(
+                                                Icon(
                                                     if (!it) {
                                                         painterResource(R.drawable.brainstorming)
                                                     } else {
                                                         painterResource(R.drawable.no_card_yet)
                                                     },
                                                     null,
-                                                    modifier = Modifier.size(80.dp)
+                                                    modifier = Modifier.size(80.dp),
+                                                    tint = AppTheme.colors.textPrimary
                                                 )
                                             }
                                         }
@@ -260,6 +294,7 @@ private fun DeckScreen(
                                             "All caught up!"
                                         },
                                         style = AppTheme.typography.body1,
+                                        color = AppTheme.colors.textPrimary,
                                         modifier = Modifier.sharedElement(
                                             rememberSharedContentState(
                                                 key = "deck_due_text_${state.deck.id}"
@@ -349,7 +384,9 @@ private fun DeckScreen(
                                     )
                                 )
                                 .clip(RoundedCornerShape(25.dp))
-                                .background(AppTheme.colors.background)
+                                .background(
+                                    AppTheme.colors.surface
+                                )
                         ) {
                             if (state.cards.isNotEmpty()) {
                                 var isSettingVisible by remember { mutableStateOf(false) }
@@ -391,7 +428,7 @@ private fun DeckScreen(
                                                 if (it != state.cards.lastIndex) {
                                                     HorizontalDivider(
                                                         modifier = Modifier.padding(horizontal = 10.dp),
-                                                        color = Color(0xFFEFEFEF)
+                                                        color = AppTheme.colors.divider
                                                     )
                                                 }
                                             }
@@ -429,7 +466,11 @@ private fun DeckScreen(
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
                                         Spacer(Modifier.weight(1f))
-                                        Box(modifier = Modifier.offset(x = 30.dp, y = 0.dp)) {
+                                        Box(
+                                            modifier = Modifier
+                                                .offset(x = 30.dp, y = 0.dp)
+                                                .applyIf(AppTheme.isDark) { alpha(0f) }
+                                        ) {
                                             Spacer(
                                                 Modifier
                                                     .offset(x = -(193 / 5).dp, y = 0.dp)
@@ -452,6 +493,7 @@ private fun DeckScreen(
                                                 fontSize = 32.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 lineHeight = 55.sp,
+                                                color = AppTheme.colors.textPrimary,
                                                 modifier = Modifier.padding(top = 30.dp)
                                             )
                                         }
@@ -476,7 +518,7 @@ private fun ReviewModeItem(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color(0xFFF8F5E1))
+            .background(AppTheme.colors.yellowOnBackground)
             .clickable(onClick = onClick)
             .padding(top = 23.dp, bottom = 20.dp)
             .padding(start = 19.dp, end = 13.dp),
@@ -486,11 +528,11 @@ private fun ReviewModeItem(
         Column {
             Text(
                 text = "Change your review mode",
-                color = Color.Black,
+                color = AppTheme.colors.textPrimary,
                 style = AppTheme.typography.body1.copy(
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Medium
-                )
+                ),
             )
             Spacer(modifier = Modifier.height(5.dp))
             Text(
@@ -538,11 +580,13 @@ private fun SettingScreen(
             IconButton(onBackClick) {
                 Icon(
                     painter = painterResource(R.drawable.ic_arrow_backward),
-                    contentDescription = null
+                    contentDescription = null,
+                    tint = AppTheme.colors.textPrimary
                 )
             }
             Text(
                 "Review Mode",
+                color = AppTheme.colors.textPrimary,
                 style = AppTheme.typography.body1.copy(
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Medium
@@ -563,7 +607,7 @@ private fun SettingScreen(
                 if (options.lastIndex != index) {
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 30.dp),
-                        color = Color(0xFFF4F4F4)
+                        color = AppTheme.colors.divider
                     )
                 }
             }
@@ -587,7 +631,7 @@ private fun ReviewModeOption(
             selected = selected,
             onClick = onClick,
             colors = RadioButtonDefaults.colors(
-                selectedColor = Color.Black.copy(alpha = 0.8f)
+                selectedColor = AppTheme.colors.textPrimary.copy(alpha = 0.8f)
             )
         )
         Column {
@@ -596,16 +640,18 @@ private fun ReviewModeOption(
                 style = AppTheme.typography.body1.copy(
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Normal
-                )
+                ),
+                color = AppTheme.colors.textPrimary,
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 description,
                 style = AppTheme.typography.body1.copy(
                     fontSize = 13.sp,
+                    lineHeight = 19.sp,
                     fontWeight = FontWeight.Normal
                 ),
-                color = Color(0xFF717171)
+                color = AppTheme.colors.textPrimary.copy(0.5f)
             )
         }
     }
