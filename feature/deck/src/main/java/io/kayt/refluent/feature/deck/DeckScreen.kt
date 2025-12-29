@@ -581,7 +581,7 @@ private fun SettingScreen(
                 Icon(
                     painter = painterResource(R.drawable.ic_arrow_backward),
                     contentDescription = null,
-                    tint =  AppTheme.colors.textPrimary
+                    tint = AppTheme.colors.textPrimary
                 )
             }
             Text(
