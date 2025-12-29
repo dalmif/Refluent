@@ -21,7 +21,7 @@ android {
         minSdk = 28
         targetSdk = libs.versions.targetSdkVersion.get().toInt()
         versionCode = gitVersion.generateVersionCode()
-        versionName = "1.1.0"
+        versionName = "1.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
